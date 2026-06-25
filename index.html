@@ -1,788 +1,1568 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SIPOL — Sistema Integrado de Polícia</title>
-  <style>
-    /* Reset & Variáveis Avançadas */
-    *{margin:0;padding:0;box-sizing:border-box}
-    :root{
-      --bg:#090d16;
-      --sb:#0d1527;
-      --panel:#121b2e;
-      --inp:#18253f;
-      --bd:#1e2f4f;
-      --bd2:#2e446f;
-      --txt:#f1f5f9;
-      --mut:#94a3b8;
-      --dim:#64748b;
-      --sky:#0284c7;
-      --skyh:#38bdf8;
-      --grn:#10b981;
-      --red:#ef4444;
-      --amb:#f59e0b;
-      --pur:#8b5cf6;
-      --radius:10px;
-    }
-    body{background:var(--bg);color:var(--txt);font-family:'Inter',system-ui,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased;letter-spacing:-0.01em}
-    *:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
-    ::-webkit-scrollbar{width:6px;height:6px}
-    ::-webkit-scrollbar-track{background:var(--bg)}
-    ::-webkit-scrollbar-thumb{background:var(--bd);border-radius:10px}
-    
-    @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
-    .fade{animation:fadeIn .25s cubic-bezier(0.16, 1, 0.3, 1)}
-    
-    /* Estrutura Principal */
-    #gw{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;background:radial-gradient(circle at top, #111a2e 0%, var(--bg) 100%)}
-    #app{display:none}
-    .shell{display:flex;min-height:100vh}
-    
-    /* Menu Lateral Tático */
-    aside{width:250px;background:var(--sb);border-right:1px solid var(--bd);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0}
-    .sbl{padding:20px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:12px}
-    .sbl-ic{width:40px;height:40px;background:linear-gradient(135deg, rgba(2,132,199,.2), rgba(2,132,199,.05));border:1px solid rgba(2,132,199,.3);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
-    .sbl h1{font-size:15px;font-weight:900;letter-spacing:.15em;color:#fff}
-    .sbl p{font-size:9px;color:var(--skyh);letter-spacing:.05em;text-transform:uppercase;font-weight:700;margin-top:1px}
-    
-    .nav{padding:12px;flex:1}
-    .ng{margin-bottom:16px}
-    .nl{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.1em;padding:0 12px 6px;font-weight:700}
-    .nb{width:100%;text-align:left;padding:10px 14px;border:1px solid transparent;background:transparent;color:var(--mut);cursor:pointer;border-radius:8px;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:500;transition:.15s;font-family:inherit;margin-bottom:2px}
-    .nb:hover{background:var(--inp);color:var(--txt)}
-    .nb.on{background:rgba(2,132,199,.15);color:var(--skyh);border-color:rgba(2,132,199,.25);font-weight:600}
-    .nb .ic{font-size:15px;width:20px;text-align:center;flex-shrink:0}
-    
-    .sbf{padding:12px;border-top:1px solid var(--bd)}
-    .uc{background:var(--panel);border-radius:var(--radius);padding:12px;border:1px solid var(--bd)}
-    .ur{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-    .uav{width:32px;height:32px;border-radius:50%;background:rgba(2,132,199,.2);color:var(--skyh);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:1px solid rgba(2,132,199,.3);flex-shrink:0}
-    .un{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff}
-    .us{font-size:10px;color:var(--mut)}
-    .lo{width:100%;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.05);color:#f87171;padding:7px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700;transition:.15s;font-family:inherit;text-align:center}
-    .lo:hover{background:rgba(239,68,68,.15);border-color:#ef4444}
-    
-    /* Painel e Conteúdo */
-    #mc{flex:1;padding:32px;overflow-y:auto;max-width:1500px;margin:0 auto;width:100%}
-    .card{background:var(--panel);border:1px solid var(--bd);border-radius:var(--radius);box-shadow:0 4px 20px rgba(0,0,0,0.15);overflow:hidden}
-    .ch{padding:16px 20px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;gap:12px;background:rgba(255,255,255,0.01)}
-    .ch h2{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--skyh)}
-    .mbd{padding:20px}
-    
-    /* Componentes de Formulário Modernizados */
-    .fld{display:flex;flex-direction:column;gap:5px}
-    .fld label{font-size:10px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
-    .inp2{background:var(--inp);border:1px solid var(--bd);border-radius:6px;padding:9px 12px;color:var(--txt);width:100%;font-family:inherit;font-size:13px;transition:.15s}
-    .inp2::placeholder{color:var(--dim)}
-    .inp2:hover{border-color:var(--bd2)}
-    .inp2:focus{border-color:var(--sky);outline:none;box-shadow:0 0 0 3px rgba(2,132,199,.15);background:var(--panel)}
-    select.inp2{cursor:pointer}
-    
-    /* Botões Modernos */
-    .btn{border:1px solid transparent;border-radius:6px;padding:9px 16px;cursor:pointer;font-weight:600;font-size:12px;transition:.15s;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:inherit}
-    .btn:disabled{opacity:.45;cursor:not-allowed}
-    .bp{background:var(--sky);color:#fff}.bp:hover:not(:disabled){background:#0091e6}
-    .bs{background:var(--inp);color:var(--txt);border-color:var(--bd2)}.bs:hover:not(:disabled){background:var(--bd)}
-    .bd{background:rgba(239,68,68,.08);color:#f87171;border-color:rgba(239,68,68,.25)}.bd:hover:not(:disabled){background:rgba(239,68,68,.2);border-color:#ef4444}
-    .bgh{background:transparent;color:var(--mut)}.bgh:hover{background:var(--inp);color:var(--txt)}
-    .sm{padding:6px 12px;font-size:11px;border-radius:5px}
-    
-    /* Abas em Pílulas */
-    .tabs{display:flex;border-bottom:1px solid var(--bd);gap:4px;margin-bottom:20px;overflow-x:auto;padding-bottom:2px}
-    .tab{padding:10px 16px;border:1px solid transparent;background:transparent;color:var(--mut);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;border-radius:6px 6px 0 0;transition:.15s;font-family:inherit;white-space:nowrap}
-    .tab:hover{background:var(--inp);color:var(--txt)}
-    .tab.on{color:var(--skyh);background:var(--inp);border-color:var(--bd) var(--bd) transparent;font-weight:800}
-    
-    /* Layouts de Grade */
-    .g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
-    .g4{display:grid;grid-template-columns:repeat(4, 1fr);gap:14px}
-    .full{grid-column:1/-1}
-    .fl{display:flex;align-items:center}
-    .g2g{gap:10px}
-    .mb2{margin-bottom:12px}
-    .mb3{margin-bottom:20px}
-    .mt2{margin-top:12px}
-    .sy>*+*{margin-top:10px}
-    
-    /* Lista Dinâmica de Vínculos */
-    .item-dinamico{display:flex;align-items:center;justify-content:between;background:linear-gradient(to right, var(--inp), rgba(24,37,63,0.3));padding:12px 16px;border-radius:8px;border:1px solid var(--bd);font-size:12px;gap:14px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.02)}
-    .item-dinamico-info{flex:1}
-    
-    /* Tabelas Limpas */
-    .tw{overflow-x:auto}
-    table{width:100%;border-collapse:collapse;font-size:13px}
-    th{text-align:left;padding:12px 16px;background:rgba(0,0,0,0.15);color:var(--mut);font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;border-bottom:1px solid var(--bd)}
-    td{padding:12px 16px;border-bottom:1px solid var(--bd);color:var(--txt)}
-    tr:hover td{background:rgba(255,255,255,0.01)}
-    .tr{text-align:right}
-    .row-obt td{opacity:.4;text-decoration:line-through;color:var(--dim)}
-    
-    /* Badges */
-    .bdg{display:inline-flex;align-items:center;padding:3px 8px;border-radius:4px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;border:1px solid}
-    .grn{background:rgba(16,185,129,.1);color:#34d399;border-color:rgba(16,185,129,.2)}
-    .rdb{background:rgba(239,68,68,.1);color:#f87171;border-color:rgba(239,68,68,.2)}
-    .pur{background:rgba(139,92,246,.1);color:#a78bfa;border-color:rgba(139,92,246,.2)}
-    
-    /* Área de upload tática */
-    .ub{border:2px dashed var(--bd);border-radius:8px;padding:20px;text-align:center;cursor:pointer;transition:.15s;font-size:12px;color:var(--mut);background:rgba(0,0,0,0.1)}
-    .ub:hover{border-color:var(--sky);color:var(--skyh);background:var(--inp)}
-    
-    /* Galeria Multi-Fotos */
-    .grid-galeria{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px;margin-top:12px}
-    .wrapper-foto-mini{position:relative;border:1px solid var(--bd);border-radius:6px;overflow:hidden;background:#05070a;aspect-ratio:1;box-shadow:0 2px 8px rgba(0,0,0,0.3)}
-    .wrapper-foto-mini img{width:100%;height:100%;object-fit:cover}
-    .btn-del-foto{position:absolute;top:4px;right:4px;background:rgba(239,68,68,0.9);color:#fff;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px;font-weight:bold;display:flex;align-items:center;justify-content:center}
-    .btn-del-foto:hover{background:#ef4444}
-    
-    /* Painel de Indicadores (Dashboard) */
-    .sts{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
-    .st{background:linear-gradient(135deg, var(--panel), var(--sb));border-radius:var(--radius);padding:16px 20px;border:1px solid var(--bd);box-shadow:0 4px 15px rgba(0,0,0,0.1)}
-    .sl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);font-weight:700;margin-bottom:4px}
-    .sv{font-size:26px;font-weight:800;color:#fff}
-    
-    /* Notificações Toasts */
-    #ts{position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
-    .t{padding:12px 18px;border-radius:8px;font-size:12px;font-weight:600;border:1px solid;min-width:280px;box-shadow:0 10px 30px rgba(0,0,0,.5);animation:fadeIn .2s ease}
-    .tok{background:#064e3b;border-color:#10b981;color:#a7f3d0}
-    .terr{background:#450a0a;border-color:#ef4444;color:#fca5a5}
-    .tinf{background:var(--panel);border-color:var(--bd);color:var(--txt)}
-
-    /* Ajustes Finos */
-    hr{border:0;border-top:1px solid var(--bd);margin:16px 0}
-    .subsecao-tit{font-size:11px;text-transform:uppercase;color:var(--skyh);letter-spacing:0.05em;font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:6px}
-
-    #rires { padding: 30px; background: #0b111e; border: 1px solid var(--bd); color: #f1f5f9; border-radius: var(--radius); }
-    .print-header { text-align: center; margin-bottom: 25px; border-bottom: 2px solid var(--bd); padding-bottom: 15px; }
-    .print-sec { margin-top: 24px; border-top: 1px solid var(--bd); padding-top: 14px; }
-    .print-sec h3 { font-size: 12px; text-transform: uppercase; margin-bottom: 10px; color: var(--skyh); letter-spacing: 0.05em; }
-
-    @media print {
-      body * { display: none !important; }
-      #rires, #rires * { display: block !important; }
-      #rires {
-        display: block !important;
-        position: absolute;
-        left: 0; top: 0; width: 100%;
-        background: #fff !important; color: #000 !important;
-        padding: 0 !important; border: none !important;
-      }
-      .print-header { border-bottom: 2px solid #000 !important; text-align: center; color: #000 !important; }
-      .print-header h2 { color: #000 !important; }
-      .print-sec { border-top: 1px solid #000 !important; margin-top: 20px !important; page-break-inside: avoid; }
-      .print-sec h3 { color: #000 !important; font-size: 13px !important; }
-      .grid-galeria { display: flex !important; flex-wrap: wrap !important; gap: 10px !important; }
-      .wrapper-foto-mini { width: 130px !important; height: 130px !important; border: 1px solid #000 !important; }
-      .btn-del-foto { display: none !important; }
-      p, span, li, td, strong { color: #000 !important; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SIPOL — Sistema Integrado de Policia</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#090d18;--sb:#0d1427;--panel:#111928;--card:#131c2e;
+  --inp:#18253d;--bd:#1e2f4d;--bd2:#2b4170;
+  --txt:#f0f4fc;--mut:#8faabf;--dim:#4a637d;
+  --sky:#0284c7;--skyh:#38bdf8;
+  --grn:#10b981;--red:#ef4444;--amb:#f59e0b;--pur:#8b5cf6;
+}
+body{background:var(--bg);color:var(--txt);font-family:"Segoe UI",system-ui,sans-serif;font-size:13px;-webkit-font-smoothing:antialiased}
+input,select,textarea,button{font-family:inherit;font-size:13px}
+button{cursor:pointer}
+*:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:4px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.fade{animation:fadeUp .22s ease-out}
+#gw{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;background:radial-gradient(circle at 30% 20%,#0d1e3d 0%,var(--bg) 65%)}
+#app{display:none}
+.shell{display:flex;min-height:100vh}
+aside{width:238px;background:var(--sb);border-right:1px solid var(--bd);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0}
+.sbl{padding:16px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:10px}
+.sbl-ic{width:38px;height:38px;border-radius:9px;background:rgba(2,132,199,.12);border:1px solid rgba(2,132,199,.25);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.sbl h1{font-size:14px;font-weight:900;letter-spacing:.18em;color:#fff}
+.sbl p{font-size:9px;color:var(--skyh);text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+.snav{padding:10px;flex:1}
+.ng{margin-bottom:14px}
+.nl{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.12em;font-weight:700;padding:0 10px 5px}
+.nb{width:100%;text-align:left;padding:9px 12px;border:1px solid transparent;background:transparent;color:var(--mut);border-radius:7px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:500;transition:.14s;margin-bottom:1px}
+.nb:hover{background:var(--inp);color:var(--txt)}
+.nb.on{background:rgba(2,132,199,.13);color:var(--skyh);border-color:rgba(2,132,199,.22);font-weight:700}
+.nb .ic{font-size:14px;width:18px;text-align:center;flex-shrink:0}
+.nb .bc{margin-left:auto;background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;min-width:16px;text-align:center}
+.sbf{padding:10px;border-top:1px solid var(--bd)}
+.uc{background:var(--inp);border-radius:9px;padding:10px;border:1px solid var(--bd)}
+.ur{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.uav{width:30px;height:30px;border-radius:50%;background:rgba(2,132,199,.18);color:var(--skyh);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:1px solid rgba(2,132,199,.28);flex-shrink:0}
+.un{font-size:12px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.us{font-size:9px;color:var(--dim)}
+.up{font-size:9px;font-family:monospace;color:var(--amb);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px}
+.lo{width:100%;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.06);color:#f87171;padding:6px;border-radius:6px;font-size:11px;font-weight:700;transition:.14s}
+.lo:hover{background:rgba(239,68,68,.18)}
+#mc{flex:1;padding:26px;overflow-y:auto;max-width:1460px;width:100%}
+section{display:none}
+section.ativo{display:block}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;overflow:hidden}
+.ch{padding:13px 17px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:rgba(255,255,255,.01)}
+.ch h2{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--skyh)}
+.cb{padding:17px}
+.btn{border:1px solid transparent;border-radius:6px;padding:7px 14px;font-weight:600;font-size:11px;transition:.14s;display:inline-flex;align-items:center;gap:5px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.bp{background:var(--sky);color:#fff}.bp:hover:not(:disabled){background:#0295db}
+.bs{background:var(--inp);color:var(--txt);border-color:var(--bd2)}.bs:hover:not(:disabled){background:var(--bd)}
+.bd{background:rgba(239,68,68,.09);color:#f87171;border-color:rgba(239,68,68,.28)}.bd:hover:not(:disabled){background:rgba(239,68,68,.2)}
+.bg_{background:rgba(16,185,129,.09);color:#34d399;border-color:rgba(16,185,129,.28)}.bg_:hover:not(:disabled){background:rgba(16,185,129,.2)}
+.bgh{background:transparent;color:var(--dim)}.bgh:hover{background:var(--inp);color:var(--txt)}
+.sm{padding:4px 10px;font-size:10px;border-radius:5px}
+.fld{display:flex;flex-direction:column;gap:4px}
+.fld label{font-size:9px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.inp{background:var(--inp);border:1px solid var(--bd);border-radius:6px;padding:8px 11px;color:var(--txt);width:100%;transition:.14s}
+.inp::placeholder{color:var(--dim)}
+.inp:hover{border-color:var(--bd2)}
+.inp:focus{border-color:var(--sky);outline:none;box-shadow:0 0 0 3px rgba(2,132,199,.12)}
+.inp.mono{font-family:monospace}
+.bdg{display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;border:1px solid}
+.bgrn{background:rgba(16,185,129,.09);color:#34d399;border-color:rgba(16,185,129,.22)}
+.bred{background:rgba(239,68,68,.09);color:#f87171;border-color:rgba(239,68,68,.22)}
+.bamb{background:rgba(245,158,11,.09);color:#fbbf24;border-color:rgba(245,158,11,.22)}
+.bsky{background:rgba(2,132,199,.09);color:var(--skyh);border-color:rgba(2,132,199,.22)}
+.bgry{background:rgba(74,99,127,.18);color:var(--mut);border-color:var(--bd)}
+.bpur{background:rgba(139,92,246,.09);color:#a78bfa;border-color:rgba(139,92,246,.22)}
+.borg{background:rgba(249,115,22,.09);color:#fb923c;border-color:rgba(249,115,22,.22)}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:9px 13px;background:rgba(0,0,0,.18);color:var(--dim);font-size:9px;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+td{padding:9px 13px;border-bottom:1px solid var(--bd)}
+tr:last-child td{border:none}
+tr:hover td{background:rgba(255,255,255,.01)}
+.tr{text-align:right}
+.row-obt td{opacity:.45;text-decoration:line-through;color:var(--dim)}
+.row-obt td:first-child{text-decoration:none;opacity:1}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.full{grid-column:1/-1}
+.fl{display:flex;align-items:center}
+.g1g{gap:4px}.g2g{gap:8px}.g3g{gap:14px}
+.mb1{margin-bottom:5px}.mb2{margin-bottom:10px}.mb3{margin-bottom:17px}.mb4{margin-bottom:24px}
+.mt1{margin-top:5px}.mt2{margin-top:10px}.mt3{margin-top:17px}
+.sy>*+*{margin-top:9px}
+.sep{border:0;border-top:1px solid var(--bd);margin:14px 0}
+.stit{font-size:10px;text-transform:uppercase;color:var(--skyh);letter-spacing:.06em;font-weight:800;margin-bottom:9px;display:flex;align-items:center;gap:6px}
+.tabs{display:flex;border-bottom:1px solid var(--bd);margin-bottom:17px;overflow-x:auto;gap:2px}
+.tab{padding:9px 14px;border:1px solid transparent;background:transparent;color:var(--dim);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-radius:6px 6px 0 0;margin-bottom:-1px;transition:.14s;white-space:nowrap}
+.tab:hover{background:var(--inp);color:var(--txt)}
+.tab.on{color:var(--skyh);background:var(--inp);border-color:var(--bd) var(--bd) transparent;font-weight:800}
+.sts{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.st{background:linear-gradient(135deg,var(--panel),var(--sb));border-radius:10px;padding:15px 18px;border:1px solid var(--bd)}
+.sl{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);font-weight:700;margin-bottom:4px}
+.sv{font-size:26px;font-weight:800}
+.item-din{display:flex;align-items:center;background:var(--inp);border:1px solid var(--bd);border-radius:7px;padding:9px 12px;gap:10px;font-size:12px;margin-bottom:5px}
+.item-din-info{flex:1}
+.galeria{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-top:10px}
+.foto-wrap{position:relative;border:1px solid var(--bd);border-radius:6px;overflow:hidden;aspect-ratio:1;background:#05070d}
+.foto-wrap img{width:100%;height:100%;object-fit:cover}
+.foto-del{position:absolute;top:3px;right:3px;background:rgba(239,68,68,.9);color:#fff;border:none;border-radius:3px;width:18px;height:18px;cursor:pointer;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.ub{border:2px dashed var(--bd);border-radius:8px;padding:18px;text-align:center;cursor:pointer;transition:.14s;font-size:11px;color:var(--dim);background:rgba(0,0,0,.08)}
+.ub:hover{border-color:var(--sky);color:var(--skyh);background:var(--inp)}
+.obt-box{background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.24);border-radius:8px;padding:10px 13px;display:flex;align-items:center;gap:10px;color:#f87171;font-size:12px;margin-bottom:8px}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:400;display:none;align-items:center;justify-content:center;padding:16px}
+.ov.open{display:flex;animation:fadeUp .18s}
+.mod{background:var(--panel);border:1px solid var(--bd);border-radius:12px;width:100%;max-height:90vh;overflow-y:auto}
+.mh{padding:13px 17px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--panel);z-index:1}
+.mh h3{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--skyh)}
+.mbd{padding:17px}
+.mc{background:none;border:none;color:var(--dim);font-size:17px;padding:2px 7px;line-height:1}
+.mc:hover{color:var(--txt)}
+#TS{position:fixed;bottom:16px;right:16px;z-index:999;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.t{padding:10px 15px;border-radius:8px;font-size:11px;font-weight:700;border:1px solid;min-width:240px;box-shadow:0 8px 24px rgba(0,0,0,.5);animation:fadeUp .2s}
+.tok{background:#064e3b;border-color:var(--grn);color:#a7f3d0}
+.terr{background:#450a0a;border-color:var(--red);color:#fca5a5}
+.tinf{background:var(--panel);border-color:var(--bd);color:var(--mut)}
+.twrn{background:#451a03;border-color:var(--amb);color:#fde68a}
+.sp{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.2);border-top-color:currentColor;border-radius:50%;animation:spin .5s linear infinite}
+#mob{display:none;position:fixed;top:0;left:0;right:0;z-index:300;background:var(--sb);border-bottom:1px solid var(--bd);padding:0 12px;height:48px;align-items:center;justify-content:space-between}
+.mob-btn{background:none;border:none;color:var(--txt);font-size:22px;padding:8px}
+#mob-ov{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:299;display:none}
+@media print{body *{display:none!important}#rires,#rires *{display:block!important}#rires{position:absolute;left:0;top:0;width:100%;background:#fff!important;color:#000!important;padding:20px!important;border:none!important;display:block!important}}
+@media(max-width:768px){aside{display:none;position:fixed;top:0;left:0;z-index:302;height:100vh;box-shadow:6px 0 24px rgba(0,0,0,.7)}aside.open{display:flex!important}#mob{display:flex!important}#mc{padding:12px;padding-top:60px}.g2,.g3,.g4{grid-template-columns:1fr}.sts{grid-template-columns:1fr 1fr}.tabs{overflow-x:auto}}
+</style>
 </head>
 <body>
-<div id="ts"></div>
+<div id="TS"></div>
 
+<!-- GATEWAY -->
 <div id="gw">
-  <div style="width:100%;max-width:400px;display:flex;flex-direction:column;gap:20px">
+  <div style="width:100%;max-width:420px;display:flex;flex-direction:column;gap:17px">
     <div style="text-align:center">
-      <div style="width:80px;height:80px;margin:0 auto 12px;border-radius:50%;background:rgba(2,132,199,.1);border:1px solid rgba(2,132,199,.3);display:flex;align-items:center;justify-content:center;font-size:36px;box-shadow:0 4px 20px rgba(2,132,199,0.15)">🛡️</div>
-      <div style="font-size:26px;font-weight:900;letter-spacing:.25em;color:#fff">SIPOL</div>
-      <div style="font-size:10px;color:var(--skyh);text-transform:uppercase;letter-spacing:.15em;font-weight:700;margin-top:4px">Inteligência Operacional Estruturada</div>
+      <div id="gw-ic" style="width:78px;height:78px;margin:0 auto 13px;border-radius:50%;background:rgba(2,132,199,.1);border:1px solid rgba(2,132,199,.28);display:flex;align-items:center;justify-content:center;font-size:34px;box-shadow:0 0 40px rgba(2,132,199,.15)">&#x1F6E1;</div>
+      <div style="font-size:24px;font-weight:900;letter-spacing:.22em;color:#fff">SIPOL</div>
+      <div style="font-size:9px;color:var(--skyh);text-transform:uppercase;letter-spacing:.14em;font-weight:700;margin-top:3px">Sistema Integrado de Policia &mdash; PCMG/DECAR</div>
     </div>
-    <div class="card" style="box-shadow: 0 20px 40px rgba(0,0,0,0.4)">
-      <div class="ch"><h2>🔒 Credenciais do Operador</h2></div>
+    <div class="card">
+      <div class="ch"><h2>Autenticar Operador</h2></div>
       <div class="mbd sy">
-        <div class="fld"><label>Matrícula / Usuário</label><input id="gl" class="inp2" value="admin"></div>
-        <div class="fld"><label>Senha Restrita</label><input id="gs" type="password" class="inp2" value="12345678"></div>
-        <button class="btn bp" style="width:100%; margin-top:8px" onclick="doLogin()">Acessar Painel</button>
+        <div class="fld"><label>Login / Matricula</label><input id="gl" class="inp" placeholder="Digite seu login" autocomplete="username"></div>
+        <div class="fld"><label>Senha</label><input id="gs" type="password" class="inp" placeholder="Digite sua senha" autocomplete="current-password"><div id="ge" style="font-size:10px;color:#f87171;display:none;margin-top:2px"></div></div>
+        <button class="btn bp" style="width:100%;margin-top:4px" onclick="doLogin()"><span id="gbt">Logar no Sistema</span></button>
+        <button class="btn bgh" style="width:100%;font-size:10px" onclick="abrirM('mod-solic')">Nao tem acesso? Solicitar Cadastro</button>
+      </div>
+    </div>
+    <div class="card" style="border-color:rgba(2,132,199,.14)">
+      <div class="mbd" style="padding:12px">
+        <div style="font-size:8px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.12em;text-align:center;margin-bottom:9px">Credenciais Padrao</div>
+        <div class="g2" style="gap:6px;font-size:11px">
+          <div style="background:var(--inp);border-radius:6px;padding:7px 9px"><div style="font-weight:700;color:#f87171">Admin Geral</div><div style="font-family:monospace;color:var(--mut);font-size:10px">admin / Admin@2026</div></div>
+          <div style="background:var(--inp);border-radius:6px;padding:7px 9px"><div style="font-weight:700;color:#fb923c">Colaborador</div><div style="font-family:monospace;color:var(--mut);font-size:10px">colab / Colab@2026</div></div>
+          <div style="background:var(--inp);border-radius:6px;padding:7px 9px"><div style="font-weight:700;color:#fbbf24">Cooperador</div><div style="font-family:monospace;color:var(--mut);font-size:10px">editor / Editor@2026</div></div>
+          <div style="background:var(--inp);border-radius:6px;padding:7px 9px"><div style="font-weight:700;color:#4ade80">Visualizador</div><div style="font-family:monospace;color:var(--mut);font-size:10px">user / User@2026</div></div>
+        </div>
+      </div>
+    </div>
+    <div style="text-align:center;font-size:9px;color:var(--dim)">SISTEMA RESTRITO &mdash; USO EXCLUSIVO PCMG/DECAR</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div id="mob">
+    <button class="mob-btn" onclick="toggleMob()">&#9776;</button>
+    <div class="fl g2g" style="gap:7px"><span id="mob-ic" style="font-size:17px">&#x1F6E1;</span><span style="font-size:13px;font-weight:900;letter-spacing:.15em">SIPOL</span></div>
+    <button class="lo" style="width:auto;padding:5px 10px" onclick="doLogout()">Sair</button>
+  </div>
+  <div id="mob-ov" onclick="fecharMob()"></div>
+  <div class="shell">
+  <aside id="sb">
+    <div class="sbl"><div class="sbl-ic" id="sb-ic">&#x1F6E1;</div><div><h1>SIPOL</h1><p>PCMG / DECAR</p></div></div>
+    <div class="snav">
+      <div class="ng">
+        <div class="nl">Investigados</div>
+        <button class="nb on" id="nb-pesq" onclick="ir('pesq')"><span class="ic">&#x1F50D;</span>Pesquisar</button>
+        <button class="nb" id="nb-cad" onclick="ir('cad')"><span class="ic">&#x1F464;</span>Cadastrar / Editar</button>
+      </div>
+      <div class="ng" id="ng-rel">
+        <div class="nl">Relatorios</div>
+        <button class="nb" id="nb-ri" onclick="ir('ri')"><span class="ic">&#x1F4C4;</span>Rel. Investigado</button>
+        <button class="nb" id="nb-rl" onclick="ir('rl')"><span class="ic">&#x1F4CB;</span>Rel. Logs</button>
+        <button class="nb" id="nb-ro" onclick="ir('ro')"><span class="ic">&#x1F46E;</span>Rel. Operadores</button>
+      </div>
+      <div class="ng" id="ng-adm">
+        <div class="nl">Administracao</div>
+        <button class="nb" id="nb-adm" onclick="ir('adm')"><span class="ic">&#x1F6E1;</span>Painel Admin<span class="bc" id="obt-badge" style="display:none">0</span><span class="bc" id="solic-badge" style="display:none;background:var(--amb)">0</span></button>
+      </div>
+      <div class="ng"><div class="nl">Perfil</div><button class="nb" id="nb-mp" onclick="ir('mp')"><span class="ic">&#x2699;</span>Minha Conta</button></div>
+    </div>
+    <div class="sbf">
+      <div class="uc">
+        <div class="ur"><div class="uav" id="sb-av">AD</div><div style="min-width:0"><div class="un" id="sb-nome">&#8212;</div><div class="us" id="sb-lot">&#8212;</div></div></div>
+        <div class="up" id="sb-perfil">&#8212;</div>
+        <button class="lo" onclick="doLogout()">Encerrar Sessao</button>
+      </div>
+      <div id="obt-sb" style="display:none;margin-top:8px">
+        <div class="obt-box" style="cursor:pointer" onclick="ir('adm')">&#x26A0; <span id="obt-sb-n">0</span> alerta(s) de obito</div>
+      </div>
+    </div>
+  </aside>
+  <main id="mc">
+
+<!-- PESQUISAR -->
+<section id="pg-pesq" class="fade ativo">
+  <div id="dash" class="sts mb3"></div>
+  <div class="card mb3"><div class="mbd">
+    <div style="font-size:15px;font-weight:700;margin-bottom:5px">Banco de Dados Operacional</div>
+    <div style="font-size:11px;color:var(--mut);margin-bottom:12px">Busque por Nome, CPF, Apelido, Placa, IP ou FID (INV-XXXX)</div>
+    <div class="fl g2g">
+      <input id="ipq" class="inp" placeholder="Ex: Rafael Oliveira, INV-2026-0001, ABC-1234..." style="flex:1" onkeydown="if(event.key==='Enter')pesq()">
+      <button class="btn bp" onclick="pesq()">&#x1F50D; Pesquisar</button>
+      <button class="btn bs" onclick="limPesq()">Limpar</button>
+    </div>
+  </div></div>
+  <div id="pr"></div>
+  <div id="fw" style="display:none"></div>
+</section>
+
+<!-- CADASTRO -->
+<section id="pg-cad" class="fade">
+  <div class="card mb3">
+    <div class="ch">
+      <h2 id="cad-tit">Novo Investigado</h2>
+      <div class="fl g2g">
+        <button id="btn-excl" class="btn bd sm" style="display:none" onclick="excluirInvAtual()">Excluir</button>
+        <button class="btn bgh sm" onclick="limForm()">Limpar</button>
+        <button class="btn bp sm" onclick="salvarInv()">&#x1F4BE; Salvar</button>
+      </div>
+    </div>
+    <div class="mbd">
+      <input type="hidden" id="fi-id">
+      <div class="tabs">
+        <button class="tab on" onclick="ftab('q')">Qualificacao</button>
+        <button class="tab" onclick="ftab('v')">Frota / Veiculos</button>
+        <button class="tab" onclick="ftab('k')">Vinculos</button>
+        <button class="tab" onclick="ftab('e')">Pontos de Interesse</button>
+        <button class="tab" onclick="ftab('d')">Midia / Arquivos</button>
+        <button class="tab" onclick="ftab('p')">Procedimento</button>
+      </div>
+      <!-- ABA Q -->
+      <div id="ft-q">
+        <div class="g3 mb3">
+          <div class="fld full"><label>Nome Completo *</label><input id="q-nome" class="inp" placeholder="Nome do investigado"></div>
+          <div class="fld"><label>CPF</label><input id="q-cpf" class="inp mono" placeholder="000.000.000-00"></div>
+          <div class="fld"><label>RG</label><input id="q-rg" class="inp mono"></div>
+          <div class="fld"><label>Naturalidade</label><input id="q-nat" class="inp" placeholder="Cidade / UF"></div>
+          <div class="fld"><label>Nascimento</label><input id="q-nasc" class="inp" placeholder="DD/MM/AAAA"></div>
+          <div class="fld"><label>Nacionalidade</label><input id="q-nac" class="inp" value="Brasileira"></div>
+          <div class="fld"><label>Nome da Mae</label><input id="q-mae" class="inp"></div>
+          <div class="fld"><label>Nome do Pai</label><input id="q-pai" class="inp"></div>
+          <div class="fld"><label>Estado Civil</label><select id="q-ec" class="inp"><option value="">&#8212;</option><option>Solteiro(a)</option><option>Casado(a)</option><option>Divorciado(a)</option><option>Viuvo(a)</option></select></div>
+          <div class="fld"><label>Profissao</label><input id="q-prof" class="inp"></div>
+          <div class="fld"><label>Local de Trabalho</label><input id="q-trb" class="inp"></div>
+          <div class="fld"><label>E-mail</label><input id="q-email" class="inp" type="email"></div>
+        </div>
+        <div class="g3 mb3">
+          <div class="fld"><label>Cor da Pele</label><input id="q-pele" class="inp"></div>
+          <div class="fld"><label>Altura</label><input id="q-alt" class="inp" placeholder="Ex: 1,75m"></div>
+          <div class="fld"><label>Peso</label><input id="q-pes" class="inp" placeholder="Ex: 72kg"></div>
+          <div class="fld full"><label>Tatuagens / Sinais Particulares</label><textarea id="q-tat" class="inp" rows="2"></textarea></div>
+        </div>
+        <hr class="sep">
+        <div class="g3 mb3">
+          <div>
+            <div class="stit">Telefones (Proprietario)</div>
+            <div class="fl g2g mb1"><input id="tp-num" class="inp" placeholder="Numero" style="flex:1"><input id="tp-obs" class="inp" placeholder="Obs" style="width:90px"><button type="button" class="btn bs sm" onclick="addTel('p')">+</button></div>
+            <div id="lst-tp" class="sy"></div>
+          </div>
+          <div>
+            <div class="stit">Telefones (Usuario)</div>
+            <div class="fl g2g mb1"><input id="tu-num" class="inp" placeholder="Numero" style="flex:1"><input id="tu-obs" class="inp" placeholder="Obs" style="width:90px"><button type="button" class="btn bs sm" onclick="addTel('u')">+</button></div>
+            <div id="lst-tu" class="sy"></div>
+          </div>
+          <div>
+            <div class="stit">Apelidos / Alcunhas</div>
+            <div class="fl g2g mb1"><input id="apel-in" class="inp" placeholder="Apelido" style="flex:1"><button type="button" class="btn bs sm" onclick="addApel()">+</button></div>
+            <div id="lst-apel" class="sy"></div>
+          </div>
+        </div>
+        <hr class="sep">
+        <div class="g2">
+          <div>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:11px;font-weight:600;margin-bottom:8px"><input type="checkbox" id="q-obt" onchange="togObt()"> Registrar Obito <span style="font-size:9px;color:var(--red)">(gera alerta no Painel Admin)</span></label>
+            <input id="q-obt-dt" class="inp" placeholder="Data do obito DD/MM/AAAA" style="display:none">
+          </div>
+          <div class="fld"><label>Observacoes Gerais</label><textarea id="q-obs" class="inp" rows="3"></textarea></div>
+        </div>
+      </div>
+      <!-- ABA V -->
+      <div id="ft-v" style="display:none">
+        <div class="g4 mb2" style="align-items:flex-end">
+          <div class="fld"><label>Marca / Modelo</label><input id="v-mod" class="inp"></div>
+          <div class="fld"><label>Placa</label><input id="v-pla" class="inp mono"></div>
+          <div class="fld"><label>Chassi</label><input id="v-cha" class="inp mono"></div>
+          <div class="fld"><label>Cor</label><input id="v-cor" class="inp"></div>
+          <div class="fld"><label>Proprietario Registral</label><input id="v-prop" class="inp"></div>
+          <div class="fld"><label>Usuario de Fato</label><input id="v-usua" class="inp"></div>
+          <div class="fld full" style="flex-direction:row;align-items:center;gap:8px">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px"><input type="checkbox" id="v-cam" onchange="togCam()"> E Caminhao?</label>
+          </div>
+          <div id="v-cam-box" class="full" style="display:none">
+            <div class="stit mt1">Carretas Vinculadas</div>
+            <div class="fl g2g mb1"><input id="v-cavalo" class="inp mono" placeholder="Placa do cavalo/caminhao" style="flex:1"><input id="carr-in" class="inp mono" placeholder="Placa da carreta" style="flex:1"><button type="button" class="btn bs sm" onclick="addCarreta()">+ Carreta</button></div>
+            <div id="lst-carr" class="sy"></div>
+          </div>
+          <div class="fld full"><label>Foto do Veiculo</label><input type="file" id="v-foto-f" accept="image/*" class="inp" onchange="carregarFoto('v',this)"><input type="hidden" id="v-foto"></div>
+          <div class="full"><button type="button" class="btn bs" style="width:100%" onclick="addVei()">+ Adicionar Veiculo</button></div>
+        </div>
+        <div id="lst-vei" class="sy mt2"></div>
+      </div>
+      <!-- ABA K -->
+      <div id="ft-k" style="display:none">
+        <div class="g3 mb2" style="align-items:flex-end">
+          <div class="fld" style="grid-column:1/3"><label>Nome do Vinculo</label><input id="k-nome" class="inp" placeholder="Nome completo"></div>
+          <div class="fld"><label>Classificacao</label><select id="k-tipo" class="inp"><option>Esposa / Companheira</option><option>Familiar / Parente</option><option>Amigo / Proximo</option><option>Comparsa / Coautor</option><option>Laranja / Fachada</option><option>Advogado</option><option>Outro</option></select></div>
+          <div class="full"><button type="button" class="btn bs" style="width:100%" onclick="addVinc()">+ Vincular Pessoa</button></div>
+        </div>
+        <div id="lst-vinc" class="sy"></div>
+      </div>
+      <!-- ABA E -->
+      <div id="ft-e" style="display:none">
+        <div class="g3 mb2" style="align-items:flex-end">
+          <div class="fld" style="grid-column:1/3"><label>Endereco Completo</label><input id="e-end" class="inp" placeholder="Rua, numero, bairro, cidade"></div>
+          <div class="fld"><label>Natureza do Local</label><select id="e-tipo" class="inp"><option>Residencia Principal</option><option>Residencia Falsa / Coivara</option><option>Local de Trabalho / Comercio</option><option>Empresa de Fachada</option><option>Ponto de Trafico</option><option>Outro</option></select></div>
+          <div class="fld"><label>Coordenadas GPS</label><input id="e-gps" class="inp" placeholder="-16.7234, -49.2648"></div>
+          <div class="fld full"><label>Foto da Fachada</label><input type="file" id="e-foto-f" accept="image/*" class="inp" onchange="carregarFoto('e',this)"><input type="hidden" id="e-foto"></div>
+          <div class="full"><button type="button" class="btn bs" style="width:100%" onclick="addEnder()">+ Vincular Ponto</button></div>
+        </div>
+        <div id="lst-ender" class="sy"></div>
+      </div>
+      <!-- ABA D -->
+      <div id="ft-d" style="display:none">
+        <div class="g2 mb3">
+          <div>
+            <div class="stit">Arquivo Fotografico do Investigado</div>
+            <div class="ub" onclick="document.getElementById('d-foto-f').click()"><input type="file" id="d-foto-f" accept="image/*" style="display:none" onchange="uploadFotoGaleria(this)">Clique para adicionar imagem ao arquivo fotografico</div>
+            <div id="galeria" class="galeria"></div>
+          </div>
+          <div>
+            <div class="stit">Documentos / Pecas Auxiliares</div>
+            <div class="ub" onclick="document.getElementById('d-doc-f').click()"><input type="file" id="d-doc-f" accept=".pdf,image/*" style="display:none" onchange="uploadDoc(this)">Clique para anexar PDF ou imagem</div>
+            <div id="lst-doc" class="sy mt2"></div>
+          </div>
+        </div>
+      </div>
+      <!-- ABA P -->
+      <div id="ft-p" style="display:none">
+        <div class="g3 mb3">
+          <div class="fld"><label>Tipo de Procedimento</label><select id="p-tipo" class="inp"><option value="RAI">RAI</option><option value="IP">IP</option><option value="BO">BO</option><option value="TCO">TCO</option><option value="APF">APF</option><option value="AIA">AIA</option><option value="PPA">PPA</option><option value="PIC">PIC</option><option value="Outros">Outros</option></select></div>
+          <div class="fld"><label>Numero</label><input id="p-num" class="inp" placeholder="Ex: 1024/2026-DECAR"></div>
+          <div class="fld"><label>VPI / Ocorrencia</label><input id="p-vpi" class="inp"></div>
+          <div class="fld"><label>Processo</label><input id="p-proc" class="inp"></div>
+          <div class="fld"><label>Delegado Responsavel</label><input id="p-del" class="inp"></div>
+          <div class="fld"><label>Escrivao</label><input id="p-esc" class="inp"></div>
+          <div class="fld"><label>Agente / Investigador</label><input id="p-agt" class="inp"></div>
+        </div>
+        <hr class="sep">
+        <div class="stit">Ocorrencias Vinculadas <button type="button" class="btn bs sm" onclick="addOcorr()">+ Adicionar</button></div>
+        <div id="lst-oc" class="sy mt1"><div style="color:var(--dim);font-size:11px;padding:6px">Nenhuma ocorrencia cadastrada.</div></div>
+      </div>
+    </div>
+  </div>
+  <!-- Repositorio -->
+  <div class="card">
+    <div class="ch"><h2>Repositorio Geral</h2>
+      <div class="fl g2g">
+        <button class="btn bg_ sm" onclick="abrirM('mod-imp')">&#x1F4E5; Importar</button>
+        <button class="btn bs sm" onclick="exportCSV()">&#x1F4E4; Exportar CSV</button>
+        <button class="btn bs sm" onclick="abrirM('mod-imp');setTimeout(()=>impTab('modelo'),100)">&#x1F4D0; Ver Modelo</button>
+        <input id="rep-q" class="inp" placeholder="Filtrar..." style="width:150px" oninput="renderRepo()">
+        <select id="rep-st" class="inp" style="width:110px" onchange="renderRepo()"><option value="">Todos</option><option value="a">Ativos</option><option value="o">Obito</option></select>
+      </div>
+    </div>
+    <div class="mbd" style="padding:0"><div class="tw"><table>
+      <thead><tr><th>Nome / FID</th><th>CPF</th><th>Procedimento</th><th>Agente</th><th>Status</th><th class="tr">Acoes</th></tr></thead>
+      <tbody id="rep-body"></tbody>
+    </table></div></div>
+  </div>
+</section>
+
+<!-- REL INVESTIGADO -->
+<section id="pg-ri" class="fade">
+  <div class="card mb3"><div class="ch"><h2>Relatorio do Investigado</h2></div><div class="mbd">
+    <div class="g3 mb3">
+      <div class="fld"><label>Buscar por Nome / CPF / FID</label>
+        <input id="ri-q" class="inp" placeholder="Digite para filtrar..." oninput="filtrarRI()">
+      </div>
+      <div class="fld"><label>Status</label>
+        <select id="ri-st" class="inp" onchange="filtrarRI()">
+          <option value="">Todos</option>
+          <option value="a">Somente Ativos</option>
+          <option value="o">Somente Obito</option>
+        </select>
+      </div>
+      <div class="fld"><label>Selecionar Investigado</label>
+        <select id="ri-sel" class="inp"><option value="">Selecione...</option></select>
+      </div>
+    </div>
+    <div class="fl g2g">
+      <button class="btn bp sm" onclick="gerarRI()">&#x1F4C4; Gerar Relatorio</button>
+      <button class="btn bs sm" onclick="imprimirRI()">&#x1F5A8; Imprimir</button>
+      <button class="btn bgh sm" onclick="limparRI()">Limpar</button>
+    </div>
+  </div></div>
+  <div id="rires"></div>
+</section>
+
+<!-- REL LOGS -->
+<section id="pg-rl" class="fade">
+  <div class="card mb3"><div class="ch"><h2>Logs de Acesso</h2></div><div class="mbd">
+    <div class="g4 mb2">
+      <div class="fld"><label>Operador</label><select id="rl-op" class="inp"><option value="">Todos</option></select></div>
+      <div class="fld"><label>Acao</label><select id="rl-ac" class="inp"><option value="">Todas</option><option>LOGIN</option><option>LOGOUT</option><option>VIEW</option><option>CREATE</option><option>UPDATE</option><option>DELETE</option></select></div>
+      <div class="fld"><label>Tipo</label><select id="rl-tp" class="inp"><option value="">Todos</option><option value="i">Investigados</option><option value="o">Operadores</option><option value="s">Sessoes</option></select></div>
+      <div class="fld" style="align-self:flex-end"><button class="btn bp sm" style="width:100%" onclick="rlPg=0;renderLogs()">Filtrar</button></div>
+    </div>
+  </div></div>
+  <div class="card">
+    <div class="mbd" style="padding:0"><div class="tw"><table>
+      <thead><tr><th>Data/Hora</th><th>Operador</th><th>Acao</th><th>Recurso</th></tr></thead>
+      <tbody id="rl-body"></tbody>
+    </table></div></div>
+    <div class="fl g2g" style="padding:9px 15px;border-top:1px solid var(--bd);justify-content:space-between">
+      <span id="rl-meta" style="font-size:10px;color:var(--dim)"></span>
+      <div class="fl g2g"><button class="btn bs sm" id="rl-prev" onclick="rlPg--;renderLogs()">Ant</button><button class="btn bs sm" id="rl-next" onclick="rlPg++;renderLogs()">Prox</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- REL OPERADORES -->
+<section id="pg-ro" class="fade">
+  <div class="card"><div class="ch"><h2>Relatorio de Operadores</h2></div>
+  <div class="mbd" style="padding:0"><div class="tw"><table>
+    <thead><tr><th>Nome / E-mail</th><th>Login</th><th>Cargo / Lotacao</th><th>Perfil</th><th>Status</th><th>Criado em</th></tr></thead>
+    <tbody id="ro-body"></tbody>
+  </table></div></div></div>
+</section>
+
+<!-- PAINEL ADMIN -->
+<section id="pg-adm" class="fade">
+  <div class="fl g2g mb3" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
+    <div><div style="font-size:15px;font-weight:700">Painel Administrativo</div><div style="font-size:11px;color:var(--mut);margin-top:2px">Controle total do sistema</div></div>
+    <button class="btn bs sm" id="adm-logo-btn" onclick="abrirM('mod-logo')">Logo do Sistema</button>
+  </div>
+  <div id="obt-alerts" class="mb3"></div>
+  <div id="solic-alerts" class="mb3"></div>
+  <div id="adm-dash" class="sts mb3"></div>
+  <div class="tabs" id="adm-tabs">
+    <button class="tab on" onclick="admTab('op')">Operadores</button>
+    <button class="tab" onclick="admTab('sl')">Solicitacoes <span id="sl-cnt" class="bdg bred" style="display:none;margin-left:3px">0</span></button>
+    <button class="tab" onclick="admTab('lg')">Logs</button>
+    <button class="tab" onclick="admTab('iv')">Investigados</button>
+    <button class="tab" id="tab-cfg" onclick="admTab('cf')">Config</button>
+  </div>
+  <!-- Aba Op -->
+  <div id="adm-op">
+    <div class="card mb3">
+      <div class="ch"><h2 id="op-tit">Cadastrar Operador</h2><div class="fl g2g"><button class="btn bgh sm" onclick="limOp()">Limpar</button><button class="btn bp sm" onclick="salvarOp()">&#x1F4BE; Salvar</button></div></div>
+      <div class="mbd">
+        <input type="hidden" id="op-id">
+        <div class="g4 mb3">
+          <div class="fld" style="grid-column:1/3"><label>Nome Completo *</label><input id="op-nome" class="inp"></div>
+          <div class="fld"><label>CPF</label><input id="op-cpf" class="inp mono" placeholder="000.000.000-00"></div>
+          <div class="fld"><label>Login *</label><input id="op-login" class="inp"></div>
+          <div class="fld"><label>Senha *</label><input id="op-senha" type="password" class="inp"></div>
+          <div class="fld"><label>Cargo *</label><input id="op-cargo" class="inp" placeholder="Ex: Agente de Policia"></div>
+          <div class="fld"><label>Lotacao *</label><input id="op-lot" class="inp" placeholder="Ex: DECAR/PCMG"></div>
+          <div class="fld"><label>E-mail</label><input id="op-email" class="inp" type="email"></div>
+          <div class="fld"><label>Telefone</label><input id="op-tel" class="inp"></div>
+        </div>
+        <div class="fld" style="max-width:400px"><label>Perfil de Acesso *</label>
+          <select id="op-perfil" class="inp"><option value="VISUALIZADOR">Visualizador &#8212; so consulta</option><option value="COOPERADOR">Cooperador &#8212; edita investigados</option><option value="COLABORADOR">Colaborador &#8212; quase tudo</option><option value="ADMIN">Administrador Geral &#8212; acesso total</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch"><h2>Operadores do Sistema</h2>
+        <div class="fl g2g">
+          <input id="op-filt" class="inp" placeholder="Filtrar..." style="width:170px" oninput="renderOps()">
+          <select id="op-filt-st" class="inp" style="width:110px" onchange="renderOps()"><option value="">Todos</option><option value="1">Ativos</option><option value="0">Inativos</option></select>
+        </div>
+      </div>
+      <div class="mbd" style="padding:0"><div class="tw"><table>
+        <thead><tr><th>Nome / Cargo</th><th>Login</th><th>Lotacao</th><th>Perfil</th><th>Status</th><th class="tr">Acoes</th></tr></thead>
+        <tbody id="op-body"></tbody>
+      </table></div></div>
+    </div>
+  </div>
+  <!-- Aba Sl -->
+  <div id="adm-sl" style="display:none">
+    <div class="card"><div class="ch"><h2>Solicitacoes Pendentes</h2></div>
+    <div class="mbd" style="padding:0"><div class="tw"><table>
+      <thead><tr><th>Nome</th><th>CPF / Login</th><th>Cargo / Lotacao</th><th>E-mail</th><th>Solicitado em</th><th class="tr">Acoes</th></tr></thead>
+      <tbody id="sl-body"></tbody>
+    </table></div></div></div>
+  </div>
+  <!-- Aba Lg -->
+  <div id="adm-lg" style="display:none">
+    <div class="card mb3"><div class="ch"><h2>Filtros de Log</h2></div><div class="mbd">
+      <div class="g4 mb2">
+        <div class="fld"><label>Operador</label><select id="alg-op" class="inp"><option value="">Todos</option></select></div>
+        <div class="fld"><label>Acao</label><select id="alg-ac" class="inp"><option value="">Todas</option><option>LOGIN</option><option>LOGOUT</option><option>VIEW</option><option>CREATE</option><option>UPDATE</option><option>DELETE</option></select></div>
+        <div class="fld"><label>Tipo</label><select id="alg-tp" class="inp"><option value="">Todos</option><option value="i">Investigados</option><option value="o">Operadores</option><option value="s">Sessoes</option></select></div>
+        <div class="fld" style="align-self:flex-end"><button class="btn bp sm" style="width:100%" onclick="algPg=0;renderAdmLogs()">Filtrar</button></div>
+      </div>
+    </div></div>
+    <div class="card">
+      <div class="mbd" style="padding:0"><div class="tw"><table>
+        <thead><tr><th>Data/Hora</th><th>Operador</th><th>Acao</th><th>Recurso</th></tr></thead>
+        <tbody id="alg-body"></tbody>
+      </table></div></div>
+      <div class="fl g2g" style="padding:9px 15px;border-top:1px solid var(--bd);justify-content:space-between">
+        <span id="alg-meta" style="font-size:10px;color:var(--dim)"></span>
+        <div class="fl g2g"><button class="btn bs sm" onclick="algPg--;renderAdmLogs()">Ant</button><button class="btn bs sm" onclick="algPg++;renderAdmLogs()">Prox</button></div>
+      </div>
+    </div>
+  </div>
+  <!-- Aba Iv -->
+  <div id="adm-iv" style="display:none">
+    <div class="card">
+      <div class="ch"><h2>Investigados Cadastrados</h2>
+        <div class="fl g2g">
+          <input id="aiv-q" class="inp" placeholder="Filtrar..." style="width:170px" oninput="renderAdmInv()">
+          <select id="aiv-st" class="inp" style="width:110px" onchange="renderAdmInv()"><option value="">Todos</option><option value="a">Ativos</option><option value="o">Obito</option></select>
+        </div>
+      </div>
+      <div class="mbd" style="padding:0"><div class="tw"><table>
+        <thead><tr><th>Nome / FID</th><th>CPF</th><th>Procedimento</th><th>Status</th><th class="tr">Acoes</th></tr></thead>
+        <tbody id="aiv-body"></tbody>
+      </table></div></div>
+      <div style="padding:9px 15px;border-top:1px solid var(--bd)"><span id="aiv-total" style="font-size:10px;color:var(--dim)"></span></div>
+    </div>
+  </div>
+  <!-- Aba Cf -->
+  <div id="adm-cf" style="display:none">
+    <div class="g2 mb3">
+      <div class="card"><div class="ch"><h2>Configuracoes Gerais</h2></div><div class="mbd sy">
+        <div class="fld"><label>Nome do Sistema</label><input id="cfg-nome" class="inp" value="SIPOL"></div>
+        <div class="fld"><label>Unidade / Delegacia</label><input id="cfg-unit" class="inp" value="DECAR/PCMG"></div>
+        <div class="fld"><label>Cabecalho do Relatorio</label><input id="cfg-rel" class="inp" value="POLICIA CIVIL DE MINAS GERAIS &#8212; DECAR"></div>
+        <button class="btn bp sm" onclick="salvarCfg()">&#x1F4BE; Salvar</button>
+      </div></div>
+      <div class="card"><div class="ch"><h2>Seguranca da Sessao</h2></div><div class="mbd sy">
+        <div style="font-size:12px;color:var(--mut);line-height:1.7">O Admin Geral nao pode alterar o proprio perfil.<br>So o Admin Geral pode definir perfil ADMIN para outros.<br>Todos os acessos sao registrados nos logs.</div>
+        <div id="cfg-sessao" style="background:var(--inp);border-radius:8px;padding:12px;border:1px solid var(--bd);font-size:12px"></div>
+      </div></div>
+    </div>
+    <div class="card" style="border-color:rgba(239,68,68,.2)">
+      <div class="ch"><h2 style="color:#f87171">Acoes Destrutivas</h2></div>
+      <div class="mbd"><div style="border:1px solid rgba(239,68,68,.18);background:rgba(239,68,68,.03);padding:14px;border-radius:8px">
+        <div style="font-weight:700;color:#f87171;margin-bottom:4px">Zerar Banco de Dados</div>
+        <div style="font-size:11px;color:var(--mut);margin-bottom:10px">Apaga todos os investigados cadastrados em memoria. Irreversivel.</div>
+        <button class="btn bd sm" onclick="limparBanco()">Limpar Banco de Dados</button>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- MEU PERFIL -->
+<section id="pg-mp" class="fade">
+  <!-- Card Instituicao — aparece só para admin -->
+  <div id="mp-inst-card" class="card mb3" style="display:none">
+    <div class="ch">
+      <h2>&#x1F3DB; Cadastro da Instituicao</h2>
+      <span style="font-size:9px;color:var(--dim)">Aparece na sidebar e no cabecalho dos relatorios</span>
+    </div>
+    <div class="mbd">
+      <div class="g3">
+        <div class="fld"><label>Nome do Sistema</label>
+          <input id="inst-sistema" class="inp" placeholder="Ex: SIPOL">
+        </div>
+        <div class="fld"><label>Nome da Instituicao</label>
+          <input id="inst-nome" class="inp" placeholder="Ex: Policia Civil de Minas Gerais">
+        </div>
+        <div class="fld"><label>Sigla / Unidade</label>
+          <input id="inst-sigla" class="inp" placeholder="Ex: PCMG / DECAR">
+        </div>
+        <div class="fld"><label>Delegacia / Setor</label>
+          <input id="inst-delegacia" class="inp" placeholder="Ex: DECAR — Del. Esp. Crianca e Adolescente">
+        </div>
+        <div class="fld"><label>Cidade / UF</label>
+          <input id="inst-cidade" class="inp" placeholder="Ex: Belo Horizonte / MG">
+        </div>
+        <div class="fld"><label>Cabecalho do Relatorio</label>
+          <input id="inst-cabecalho" class="inp" placeholder="Ex: POLICIA CIVIL DE MINAS GERAIS — DECAR">
+        </div>
+      </div>
+      <div class="mt2 fl g2g">
+        <button class="btn bp sm" onclick="salvarInstituicao()">&#x1F4BE; Salvar Instituicao</button>
+        <span id="inst-preview" style="font-size:10px;color:var(--dim);margin-left:8px"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card"><div class="ch"><h2>Minhas Informacoes</h2></div><div class="mbd sy">
+      <div id="mp-aviso" style="background:rgba(2,132,199,.06);border:1px solid rgba(2,132,199,.18);border-radius:7px;padding:10px;font-size:11px;color:var(--mut)">
+        &#x2139;&#xFE0F; Como <strong style="color:var(--skyh)">Administrador Geral</strong>, voce pode editar todos os campos.
+      </div>
+      <div class="fld"><label>Nome Completo</label><input id="mp-nome" class="inp" placeholder="Nome completo"></div>
+      <div class="fld"><label>Login / Matricula</label><input id="mp-login" class="inp" placeholder="Login de acesso"></div>
+      <div class="fld"><label>E-mail</label><input id="mp-email" class="inp" type="email" placeholder="Digite seu e-mail"></div>
+      <div class="fld"><label>Telefone</label><input id="mp-tel" class="inp" placeholder="Digite seu telefone"></div>
+      <div class="fld"><label>Lotacao</label><input id="mp-lot" class="inp" placeholder="Ex: DECAR/PCMG"></div>
+      <div class="fld"><label>Cargo</label><input id="mp-cargo" class="inp" placeholder="Ex: Delegado"></div>
+      <button class="btn bp sm" onclick="salvarMP()">&#x1F4BE; Salvar</button>
+    </div></div>
+    <div class="card"><div class="ch"><h2>Mudar Senha</h2></div><div class="mbd sy">
+      <div class="fld"><label>Senha Atual</label><input id="mp-s1" type="password" class="inp"></div>
+      <div class="fld"><label>Nova Senha</label><input id="mp-s2" type="password" class="inp"></div>
+      <div class="fld"><label>Confirmar Nova Senha</label><input id="mp-s3" type="password" class="inp"></div>
+      <button class="btn bp sm" onclick="mudarSenha()">&#x1F511; Alterar Senha</button>
+    </div></div>
+  </div>
+</section>
+
+  </main></div></div>
+
+<!-- MODAIS -->
+<div class="ov" id="mod-solic">
+  <div class="mod" style="max-width:540px">
+    <div class="mh"><h3>Solicitar Cadastro</h3><button class="mc" onclick="fecharM('mod-solic')">&#x2715;</button></div>
+    <div class="mbd sy">
+      <div style="background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.25);border-radius:7px;padding:10px;font-size:11px;color:#fbbf24;margin-bottom:4px">
+        &#x1F4DD; Preencha seus dados. O Administrador ira aprovar ou rejeitar o acesso.
+        Apos aprovacao, voce podera entrar com o login e senha cadastrados aqui.
+      </div>
+      <div class="g2">
+        <div class="fld full"><label>Nome Completo *</label><input id="sc-nome" class="inp" placeholder="Seu nome completo"></div>
+        <div class="fld"><label>CPF</label><input id="sc-cpf" class="inp mono" placeholder="000.000.000-00"></div>
+        <div class="fld"><label>Login desejado * <span style="font-size:9px;color:var(--dim)">(sem espacos)</span></label><input id="sc-login" class="inp" placeholder="Ex: joao.silva"></div>
+        <div class="fld"><label>Senha * <span style="font-size:9px;color:var(--dim)">(min. 6 caracteres)</span></label><input id="sc-s1" type="password" class="inp"></div>
+        <div class="fld"><label>Confirmar Senha *</label><input id="sc-s2" type="password" class="inp"></div>
+        <div class="fld"><label>Cargo / Funcao *</label><input id="sc-cargo" class="inp" placeholder="Ex: Agente de Policia"></div>
+        <div class="fld"><label>Lotacao / Unidade *</label><input id="sc-lot" class="inp" placeholder="Ex: DECAR/PCMG"></div>
+        <div class="fld"><label>E-mail</label><input id="sc-email" class="inp" type="email" placeholder="seu@email.com"></div>
+        <div class="fld full"><label>Motivo / Justificativa</label><textarea id="sc-motivo" class="inp" rows="2" placeholder="Descreva brevemente o motivo do acesso ao sistema"></textarea></div>
+      </div>
+      <div class="fl g2g" style="justify-content:flex-end">
+        <button class="btn bgh sm" onclick="fecharM('mod-solic')">Cancelar</button>
+        <button class="btn bp sm" onclick="enviarSolic()">Enviar Solicitacao</button>
       </div>
     </div>
   </div>
 </div>
 
-<div id="app">
-  <div id="fb-status-bar" style="background:var(--sb);border-bottom:1px solid var(--bd);padding:6px 20px;font-size:11px;text-align:right;font-weight:600">
-    <span style="color:var(--grn); display:inline-flex; align-items:center; gap:6px">● Canal Seguro (PCGO)</span>
+<div class="ov" id="mod-cf">
+  <div class="mod" style="max-width:360px">
+    <div class="mh"><h3 id="cf-tit">Confirmar</h3><button class="mc" onclick="fecharM('mod-cf')">&#x2715;</button></div>
+    <div class="mbd">
+      <p id="cf-msg" style="color:var(--mut);font-size:13px;margin-bottom:14px"></p>
+      <div class="fl g2g" style="justify-content:flex-end">
+        <button class="btn bgh sm" onclick="fecharM('mod-cf')">Cancelar</button>
+        <button class="btn bd sm" id="cf-ok">Confirmar</button>
+      </div>
+    </div>
   </div>
-  
-  <div class="shell">
-    <aside id="sidebar">
-      <div class="sbl">
-        <div class="sbl-ic">🛡️</div>
-        <div><h1>SIPOL</h1><p>Polícia Civil / GO</p></div>
+</div>
+
+<div class="ov" id="mod-logo">
+  <div class="mod" style="max-width:360px">
+    <div class="mh"><h3>Logo do Sistema</h3><button class="mc" onclick="fecharM('mod-logo')">&#x2715;</button></div>
+    <div class="mbd sy">
+      <div id="logo-prev" style="text-align:center;padding:16px;border:2px dashed var(--bd);border-radius:8px;font-size:36px">&#x1F6E1;</div>
+      <div class="fl g2g" style="flex-wrap:wrap;gap:5px">
+        <button class="btn bs sm" onclick="LOGO_TMP='&#x1F6E1;';atualizarLogoPrev()">&#x1F6E1;</button>
+        <button class="btn bs sm" onclick="LOGO_TMP='&#x2694;';atualizarLogoPrev()">&#x2694;</button>
+        <button class="btn bs sm" onclick="LOGO_TMP='&#x1F694;';atualizarLogoPrev()">&#x1F694;</button>
+        <button class="btn bs sm" onclick="LOGO_TMP='&#x1F50D;';atualizarLogoPrev()">&#x1F50D;</button>
+        <button class="btn bs sm" onclick="LOGO_TMP='&#x1F46E;';atualizarLogoPrev()">&#x1F46E;</button>
+        <button class="btn bd sm" onclick="LOGO_TMP='';atualizarLogoPrev()">Remover</button>
       </div>
-      <div class="nav">
-        <div class="ng">
-          <div class="nl">Investigados</div>
-          <button class="nb on" id="nb-pesq" onclick="ir('pesq')"><span class="ic">🔍</span>Pesquisar Alvos</button>
-          <button class="nb" id="nb-cad" onclick="ir('cad')"><span class="ic">👤</span>Prontuário Digital</button>
+      <div class="fl g2g" style="justify-content:flex-end">
+        <button class="btn bgh sm" onclick="fecharM('mod-logo')">Fechar</button>
+        <button class="btn bp sm" onclick="aplicarLogo()">Aplicar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ov" id="mod-imp">
+  <div class="mod" style="max-width:680px">
+    <div class="mh">
+      <h3>&#x1F4E5; Importar / Exportar Investigados</h3>
+      <button class="mc" onclick="fecharM('mod-imp')">&#x2715;</button>
+    </div>
+    <div class="mbd">
+      <div class="tabs mb3">
+        <button class="tab on" onclick="impTab('csv')">&#x1F4C4; Importar CSV</button>
+        <button class="tab" onclick="impTab('json')">&#x1F4CB; Importar JSON</button>
+        <button class="tab" onclick="impTab('manual')">&#x270F; Entrada Manual</button>
+        <button class="tab" onclick="impTab('modelo')">&#x1F4D0; Modelo / Ajuda</button>
+      </div>
+
+      <!-- ABA CSV -->
+      <div id="imp-csv">
+        <div style="background:var(--inp);border-radius:8px;padding:12px;margin-bottom:12px;font-size:11px;border:1px solid var(--bd)">
+          <div style="font-weight:700;color:var(--txt);margin-bottom:6px">&#x1F4CB; Formato CSV esperado (separado por ; )</div>
+          <div style="font-family:monospace;font-size:9px;background:var(--bg);padding:8px;border-radius:5px;color:var(--skyh);overflow-x:auto;white-space:nowrap">nome;cpf;rg;naturalidade;nascimento;mae;pai;estadocivil;profissao;pele;altura;peso;email;apelidos;ip;vpi;delegado;agente;obs</div>
+          <div class="mt1" style="color:var(--dim)">&#x2022; Primeira linha = cabecalho (obrigatorio) &nbsp;&#x2022; Apelidos separados por | &nbsp;&#x2022; Salve o Excel como CSV UTF-8</div>
         </div>
-        <div class="ng">
-          <div class="nl">Relatórios</div>
-          <button class="nb" id="nb-ri" onclick="ir('ri')"><span class="ic">📄</span>Prontuário Geral</button>
+        <div class="fld mb2"><label>Selecionar Arquivo CSV</label>
+          <input type="file" id="imp-csv-f" accept=".csv,.txt" class="inp">
         </div>
-        <div class="ng" id="nav-seguranca" style="display:none">
-          <div class="nl">Segurança</div>
-          <button class="nb" id="nb-adm" onclick="ir('adm')"><span class="ic">⚠️</span>Administração</button>
+        <div class="fl g2g">
+          <button class="btn bp sm" onclick="importCSV()">&#x1F4E5; Importar CSV</button>
+          <button class="btn bs sm" onclick="baixarModeloCSV()">&#x1F4E4; Baixar Modelo CSV</button>
         </div>
       </div>
-      <div class="sbf">
-        <div class="uc">
-          <div class="ur">
-            <div class="uav" id="u-avatar">WM</div>
-            <div style="overflow:hidden">
-              <div class="un" id="u-nome font">Wendel Matias</div>
-              <div class="us" id="u-cargo">Agente de Polícia</div>
-            </div>
+
+      <!-- ABA JSON -->
+      <div id="imp-json" style="display:none">
+        <div style="background:var(--inp);border-radius:8px;padding:12px;margin-bottom:12px;font-size:11px;border:1px solid var(--bd)">
+          <div style="font-weight:700;color:var(--txt);margin-bottom:6px">Formato JSON (array de objetos)</div>
+          <div style="font-family:monospace;font-size:9px;background:var(--bg);padding:8px;border-radius:5px;color:var(--skyh)">[ {"nome":"JOAO SILVA","cpf":"123.456.789-00","ip":"2026-001","apelidos":"Joao|Ze"} ]</div>
+          <div class="mt1" style="color:var(--dim)">Aceita exportacoes do proprio SIPOL (botao Exportar CSV convertido para JSON)</div>
+        </div>
+        <div class="fld mb2"><label>Selecionar Arquivo JSON</label>
+          <input type="file" id="imp-json-f" accept=".json" class="inp">
+        </div>
+        <button class="btn bp sm" onclick="importJSON()">&#x1F4E5; Importar JSON</button>
+      </div>
+
+      <!-- ABA MANUAL -->
+      <div id="imp-manual" style="display:none">
+        <div style="background:var(--inp);border-radius:8px;padding:12px;margin-bottom:12px;font-size:11px;border:1px solid var(--bd)">
+          <div style="font-weight:700;color:var(--txt);margin-bottom:4px">Uma linha por investigado, campos separados por ; </div>
+          <div style="font-family:monospace;font-size:9px;background:var(--bg);padding:8px;border-radius:5px;color:var(--skyh)">NOME;CPF;NATURALIDADE;NASCIMENTO;IP/PROCEDIMENTO</div>
+          <div class="mt1" style="color:var(--dim)">Apenas Nome e obrigatorio. Os demais campos sao opcionais.</div>
+        </div>
+        <textarea id="imp-txt" class="inp" rows="8" placeholder="JOAO SILVA;123.456.789-00;Belo Horizonte/MG;01/01/1990;IP 1024/2026-DECAR
+MARIA SOUZA;987.654.321-00;Contagem/MG;15/06/1985;IP 0892/2026-DECAR
+PEDRO COSTA;;;;" style="font-family:monospace;font-size:11px"></textarea>
+        <button class="btn bp sm mt2" onclick="importManual()">&#x1F4E5; Importar</button>
+      </div>
+
+      <!-- ABA MODELO -->
+      <div id="imp-modelo" style="display:none">
+        <div style="font-size:12px;font-weight:700;color:var(--txt);margin-bottom:12px">Como preparar sua planilha para importar</div>
+
+        <div style="background:var(--inp);border-radius:8px;padding:14px;margin-bottom:12px;border:1px solid var(--bd)">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--skyh);margin-bottom:10px">Colunas aceitas pelo SIPOL</div>
+          <div style="overflow-x:auto">
+            <table style="width:100%;font-size:10px;border-collapse:collapse">
+              <thead>
+                <tr style="background:rgba(0,0,0,.3)">
+                  <th style="padding:6px 10px;text-align:left;color:var(--dim)">Coluna</th>
+                  <th style="padding:6px 10px;text-align:left;color:var(--dim)">Descricao</th>
+                  <th style="padding:6px 10px;text-align:left;color:var(--dim)">Obrigatorio</th>
+                  <th style="padding:6px 10px;text-align:left;color:var(--dim)">Exemplo</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:#4ade80;font-family:monospace;font-weight:700">nome</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd)">Nome completo do investigado</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:#4ade80">SIM</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:var(--dim);font-family:monospace">JOAO SILVA</td></tr>
+                <tr><td style="padding:5px 10px;border-bottom:1px solid var(--bd);font-family:monospace">cpf</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd)">CPF do investigado</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:var(--dim)">nao</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:var(--dim);font-family:monospace">123.456.789-00</td></tr>
+                <tr><td style="padding:5px 10px;border-bottom:1px solid var(--bd);font-family:monospace">rg</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd)">RG do investigado</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:var(--dim)">nao</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:var(--dim);font-family:monospace">MG-12.345.678</td></tr>
+                <tr><td style="padding:5px 10px;border-bottom:1px solid var(--bd);font-family:monospace">naturalidade</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd)">Cidade e estado de nascimento</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:var(--dim)">nao</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:var(--dim);font-family:monospace">Belo Horizonte / MG</td></tr>
+                <tr><td style="padding:5px 10px;border-bottom:1px solid var(--bd);font-family:monospace">nascimento</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd)">Data de nascimento</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:var(--dim)">nao</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:var(--dim);font-family:monospace">15/04/1992</td></tr>
+                <tr><td style="padding:5px 10px;border-bottom:1px solid var(--bd);font-family:monospace">mae</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd)">Nome da mae</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:var(--dim)">nao</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:var(--dim);font-family:monospace">Maria Aparecida</td></tr>
+                <tr><td style="padding:5px 10px;border-bottom:1px solid var(--bd);font-family:monospace">pai</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd)">Nome do pai</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:var(--dim)">nao</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:var(--dim);font-family:monospace">Joao Batista</td></tr>
+                <tr><td style="padding:5px 10px;border-bottom:1px solid var(--bd);font-family:monospace">estadocivil</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd)">Estado civil</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:var(--dim)">nao</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:var(--dim);font-family:monospace">Solteiro(a)</td></tr>
+                <tr><td style="padding:5px 10px;border-bottom:1px solid var(--bd);font-family:monospace">profissao</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd)">Profissao</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:var(--dim)">nao</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:var(--dim);font-family:monospace">Comerciante</td></tr>
+                <tr><td style="padding:5px 10px;border-bottom:1px solid var(--bd);font-family:monospace">pele</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd)">Cor da pele</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:var(--dim)">nao</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:var(--dim);font-family:monospace">Parda</td></tr>
+                <tr><td style="padding:5px 10px;border-bottom:1px solid var(--bd);font-family:monospace">altura</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd)">Altura</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:var(--dim)">nao</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:var(--dim);font-family:monospace">1,78m</td></tr>
+                <tr><td style="padding:5px 10px;border-bottom:1px solid var(--bd);font-family:monospace">peso</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd)">Peso</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:var(--dim)">nao</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:var(--dim);font-family:monospace">72kg</td></tr>
+                <tr><td style="padding:5px 10px;border-bottom:1px solid var(--bd);font-family:monospace">email</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd)">E-mail</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:var(--dim)">nao</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:var(--dim);font-family:monospace">joao@email.com</td></tr>
+                <tr><td style="padding:5px 10px;border-bottom:1px solid var(--bd);font-family:monospace">apelidos</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd)">Apelidos separados por |</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:var(--dim)">nao</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:var(--dim);font-family:monospace">Joao|Ze|Baiano</td></tr>
+                <tr><td style="padding:5px 10px;border-bottom:1px solid var(--bd);font-family:monospace">ip</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd)">Numero do IP / procedimento</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:var(--dim)">nao</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:var(--dim);font-family:monospace">2026-0156/DECAR</td></tr>
+                <tr><td style="padding:5px 10px;border-bottom:1px solid var(--bd);font-family:monospace">vpi</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd)">VPI / ocorrencia</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:var(--dim)">nao</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:var(--dim);font-family:monospace">VPI-0487</td></tr>
+                <tr><td style="padding:5px 10px;border-bottom:1px solid var(--bd);font-family:monospace">delegado</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd)">Delegado responsavel</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:var(--dim)">nao</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:var(--dim);font-family:monospace">Dr. Jose Silva</td></tr>
+                <tr><td style="padding:5px 10px;border-bottom:1px solid var(--bd);font-family:monospace">agente</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd)">Agente investigador</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:var(--dim)">nao</td><td style="padding:5px 10px;border-bottom:1px solid var(--bd);color:var(--dim);font-family:monospace">Marcos Oliveira</td></tr>
+                <tr><td style="padding:5px 10px;font-family:monospace">obs</td><td style="padding:5px 10px">Observacoes</td><td style="padding:5px 10px;color:var(--dim)">nao</td><td style="padding:5px 10px;color:var(--dim);font-family:monospace">Investigado principal</td></tr>
+              </tbody>
+            </table>
           </div>
-          <button class="lo" onclick="doLogout()">Encerrar Sessão</button>
+        </div>
+
+        <div style="background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:12px;font-size:11px;margin-bottom:12px">
+          <div style="font-weight:700;color:#34d399;margin-bottom:6px">&#x1F4A1; Como preparar no Excel / Google Sheets</div>
+          <div style="color:var(--mut);line-height:1.7">
+            1. Crie uma planilha com os cabecalhos exatamente como mostrado acima (linha 1)<br>
+            2. Preencha os dados a partir da linha 2, um investigado por linha<br>
+            3. Salve como: <strong style="color:var(--txt)">Arquivo &rarr; Salvar Como &rarr; CSV UTF-8 (delimitado por virgulas)</strong><br>
+            4. Se usar Excel, o separador pode ser ; ou , — o sistema detecta automaticamente<br>
+            5. Campos vazios podem ser deixados em branco (nao precisa preencher todos)
+          </div>
+        </div>
+
+        <div class="fl g2g">
+          <button class="btn bp sm" onclick="baixarModeloCSV()">&#x1F4E4; Baixar Modelo CSV Preenchido</button>
+          <button class="btn bs sm" onclick="impTab('csv')">&#x1F4E5; Ir para Importar CSV</button>
         </div>
       </div>
-    </aside>
 
-    <main id="mc">
-      <section id="pg-pesq" class="fade">
-        <div id="dash" class="sts mb3">
-          <div class="st"><div class="sl">Alvos Cadastrados</div><div class="sv" id="st-inv">0</div></div>
-          <div class="st"><div class="sl">Procedimentos Ativos</div><div class="sv" id="st-ip">0</div></div>
-        </div>
-        <div class="card mb3">
-          <div class="mbd">
-            <div style="font-size:16px;font-weight:700;margin-bottom:6px;color:#fff">Banco de Dados Operacional</div>
-            <div class="fl g2g">
-              <input id="ipq" class="inp2" placeholder="Digite Nome, CPF, Telefone ou Placa de veículo para buscar..." style="flex:1" onkeydown="if(event.key==='Enter')pesq()">
-              <button class="btn bp" onclick="pesq()">🔍 Buscar</button>
-            </div>
-          </div>
-        </div>
-        <div id="pr" class="sy"></div>
-      </section>
+      <div id="imp-res" class="mt2"></div>
+    </div>
+  </div>
+</div>
 
-      <section id="pg-cad" style="display:none" class="fade">
-        <div class="card mb3">
-          <div class="ch">
-            <h2 id="ftit">👤 Prontuário de Investigação</h2>
-            <div class="fl g2g">
-              <button id="btn-excluir-alvo" class="btn bd sm" style="display:none;" onclick="excluirAlvoAtual()">🗑️ Eliminar Registro</button>
-              <button class="btn bgh sm" onclick="limForm()">Limpar</button>
-              <button class="btn bp sm" onclick="salvarInv()">💾 Salvar Dados</button>
-            </div>
-          </div>
-          <div class="mbd">
-            <input type="hidden" id="fid2">
-            <div class="tabs">
-              <button class="tab on" id="t-q" onclick="ftab('q')">Qualificação</button>
-              <button class="tab" id="t-v" onclick="ftab('v')">Frota & Veículos</button>
-              <button class="tab" id="t-k" onclick="ftab('k')">Vínculos & Laranjas</button>
-              <button class="tab" id="t-e" onclick="ftab('e')">Pontos de Interesse</button>
-              <button class="tab" id="t-d" onclick="ftab('d')">Mídia e Arquivos</button>
-              <button class="tab" id="t-p" onclick="ftab('p')">Vínculo Jurídico/Procedimento</button>
-            </div>
-
-            <div id="ft-q">
-              <div class="g3 mb3">
-                <div class="fld full"><label>Nome Completo do Alvo</label><input id="fnome" class="inp2"></div>
-                <div class="fld"><label>CPF</label><input id="fcpf" class="inp2"></div>
-                <div class="fld"><label>Naturalidade</label><input id="fnat" class="inp2"></div>
-                <div class="fld"><label>Data de Nascimento</label><input id="fnas" class="inp2"></div>
-                <div class="fld full"><label>Nome Completo da Mãe</label><input id="fmae" class="inp2"></div>
-                <div class="fld full" style="flex-direction:row; justify-content:flex-end; align-items:center; padding-top:10px">
-                  <label style="cursor:pointer; display:flex; align-items:center; gap:8px"><input type="checkbox" id="fobt"> ⚰️ Confirmar Registro de Óbito</label>
-                </div>
-              </div>
-              <hr><div class="subsecao-tit">📞 Terminais Telefônicos Associados</div>
-              <div class="g3 mb2" style="align-items:flex-end">
-                <div class="fld"><label>Número do Terminal</label><input id="ftel-num" class="inp2"></div>
-                <div class="fld"><label>Observação</label><input id="ftel-obs" class="inp2"></div>
-                <button type="button" class="btn bs" onclick="addTelefoneLista()">+ Adicionar</button>
-              </div>
-              <div id="tel-lista" class="sy mt2"></div>
-            </div>
-
-            <div id="ft-v" style="display:none">
-              <div class="g4 mb2" style="align-items:flex-end;">
-                <div class="fld"><label>Marca / Modelo</label><input id="fvei-mod" class="inp2"></div>
-                <div class="fld"><label>Placa</label><input id="fvei-pla" class="inp2"></div>
-                <div class="fld"><label>Chassi</label><input id="fvei-cha" class="inp2"></div>
-                <div class="fld"><label>Cor</label><input id="fvei-cor" class="inp2"></div>
-                <div class="fld full g2">
-                  <div class="fld"><label>Proprietário Registral</label><input id="fvei-prop" class="inp2"></div>
-                  <div class="fld"><label>Usuário de Fato</label><input id="fvei-usua" class="inp2"></div>
-                </div>
-                <div class="fld full"><label>Foto</label><input type="file" id="file-vei" accept="image/*" class="inp2" onchange="processaFotoVei(this)"><input type="hidden" id="fvei-foto-b64"></div>
-                <div class="fld full"><button type="button" class="btn bs" style="width:100%" onclick="addVeiculoLista()">Linkar Veículo</button></div>
-              </div>
-              <div id="vei-lista" class="sy mt2"></div>
-            </div>
-
-            <div id="ft-k" style="display:none">
-              <div class="g3 mb2" style="align-items:flex-end;">
-                <div class="fld" style="grid-column:1/3"><label>Nome do Vínculo</label><input id="fvin-nome" class="inp2"></div>
-                <div class="fld"><label>Classificação</label>
-                  <select id="fvin-tipo" class="inp2">
-                    <option>Esposa / Companheira</option><option>Familiar / Parente</option><option>Amigo / Próximo</option><option>Comparsa / Coautor</option><option>Laranja / Testemunha de Fachada</option>
-                  </select>
-                </div>
-                <div class="fld full"><button type="button" class="btn bs" style="width:100%" onclick="addVinculoLista()">Vincular Pessoa</button></div>
-              </div>
-              <div id="vin-lista" class="sy mt2"></div>
-            </div>
-
-            <div id="ft-e" style="display:none">
-              <div class="g3 mb2" style="align-items:flex-end;">
-                <div class="fld" style="grid-column:1/3"><label>Endereço Completo</label><input id="fend-Rua" class="inp2"></div>
-                <div class="fld"><label>Natureza do Local</label>
-                  <select id="fend-tipo" class="inp2">
-                    <option>Residência Principal</option><option>Residência Falsa / Coivara</option><option>Local de Trabalho / Comércio</option><option>Empresa de Fachada</option>
-                  </select>
-                </div>
-                <div class="fld full g2">
-                  <div class="fld"><label>Coordenadas (GPS)</label><input id="fend-gps" class="inp2"></div>
-                  <div class="fld"><label>Foto</label><input type="file" id="file-fachada" accept="image/*" class="inp2" onchange="processaFotoFachada(this)"><input type="hidden" id="fend-foto-b64"></div>
-                </div>
-                <div class="fld full"><button type="button" class="btn bs" style="width:100%" onclick="addEnderecoLista()">Vincular Ponto</button></div>
-              </div>
-              <div id="end-lista" class="sy mt2"></div>
-            </div>
-
-            <div id="ft-d" style="display:none">
-              <div class="g2 mb3">
-                <div>
-                  <div class="subsecao-tit">📷 Arquivo Fotográfico do Alvo</div>
-                  <div class="ub" onclick="document.getElementById('file-foto-multi').click()"><input type="file" id="file-foto-multi" accept="image/*" style="display:none" onchange="uploadFotoMulti(this)">Clique para adicionar imagem</div>
-                  <div id="galeria-alvo-container" class="grid-galeria"></div>
-                </div>
-                <div>
-                  <div class="subsecao-tit">📎 Peças e Documentos Auxiliares</div>
-                  <div class="ub" onclick="document.getElementById('file-doc').click()"><input type="file" id="file-doc" accept=".pdf,image/*" style="display:none" onchange="uploadDocumento(this)">Anexar Documentos</div>
-                  <div id="doc-lista" class="sy mt2"></div>
-                </div>
-              </div>
-            </div>
-
-            <div id="ft-p" style="display:none">
-              <div class="g3 mb3">
-                <div class="fld"><label>Tipo de Procedimento</label>
-                  <select id="fproc-tipo" class="inp2">
-                    <option value="RAI">RAI</option><option value="IP">IP</option><option value="BO">BO</option><option value="TCO">TCO</option><option value="APF">APF</option><option value="AIA">AIA</option><option value="PPA">PPA</option><option value="PIC">PIC</option><option value="Outros">Outros</option>
-                  </select>
-                </div>
-                <div class="fld"><label>Numeração</label><input id="fip" class="inp2"></div>
-                <div class="fld"><label>Autoridade Policial</label><input id="fdel" class="inp2"></div>
-                <div class="fld full"><label>Agente Encarregado</label><input id="fagt" class="inp2" readonly style="opacity:0.7"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="mbd" style="padding:0">
-            <div class="tw">
-              <table>
-                <thead><tr><th>Alvo Principal</th><th>CPF</th><th>Procedimento</th><th>Encarregado</th><th>Status</th><th class="tr">Ações</th></tr></thead>
-                <tbody id="rb"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="pg-ri" style="display:none" class="fade">
-        <div class="card mb3">
-          <div class="ch"><h2>📄 Consolidar Dossiê do Alvo</h2></div>
-          <div class="mbd">
-            <div class="g2">
-              <div class="fld"><label>Selecione o Investigado</label><select id="rsel" class="inp2"><option value="">Selecione...</option></select></div>
-              <div class="fl g2g" style="align-items:flex-end">
-                <button class="btn bp" onclick="gerarRI()">Gerar Visualização</button>
-                <button class="btn bs" onclick="window.print()">🖨️ Imprimir Peça</button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div id="rires" style="display:none;"></div>
-      </section>
-
-      <section id="pg-adm" style="display:none" class="fade">
-        <div class="g2 mb3">
-          <div class="card">
-            <div class="ch"><h2>🔑 Configurações da Conta Corrente</h2></div>
-            <div class="mbd sy">
-              <div class="fld"><label>Novo Login Administrativo</label><input id="adm-new-login" class="inp2"></div>
-              <div class="fld"><label>Nova Senha</label><input id="adm-new-pass" type="password" class="inp2"></div>
-              <button class="btn bp" onclick="alterarCredenciaisAdmin()">Atualizar Minhas Credenciais</button>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="ch"><h2>👥 Inserir Novo Usuário no Sistema</h2></div>
-            <div class="mbd sy">
-              <div class="g2">
-                <div class="fld"><label>Nome do Servidor</label><input id="usr-nome" class="inp2" placeholder="Ex: Wendel Matias"></div>
-                <div class="fld"><label>Cargo / Função</label><input id="usr-cargo" class="inp2" placeholder="Ex: Agente de Polícia"></div>
-              </div>
-              <div class="g3">
-                <div class="fld"><label>Username</label><input id="usr-login" class="inp2"></div>
-                <div class="fld"><label>Senha Inicial</label><input id="usr-pass" type="password" class="inp2"></div>
-                <div class="fld"><label>Privilégio</label>
-                  <select id="usr-role" class="inp2">
-                    <option value="operador">Operador Comun</option>
-                    <option value="admin">Administrador Geral</option>
-                  </select>
-                </div>
-              </div>
-              <button class="btn bp" onclick="cadastrarUsuario()">+ Validar Credenciais do Usuário</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="card mb3">
-          <div class="ch"><h2>👥 Operadores Ativos no Sistema</h2></div>
-          <div class="mbd" style="padding:0">
-            <div class="tw">
-              <table>
-                <thead><tr><th>Nome</th><th>Cargo</th><th>Username</th><th>Nível</th><th class="tr">Ação</th></tr></thead>
-                <tbody id="tbl-usuarios"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <div class="card mb3">
-          <div class="ch"><h2 style="color:var(--amb)">📋 Livro de Registros e Logs do Sistema (Imutável)</h2></div>
-          <div class="mbd" style="padding:0">
-            <div class="tw" style="max-height:300px; overflow-y:auto">
-              <table>
-                <thead><tr><th style="width:160px">Data / Hora</th><th style="width:120px">Operador</th><th>Ação Monitorada</th></tr></thead>
-                <tbody id="tbl-logs"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="ch"><h2 style="color:var(--red)">⚠️ Ações Destrutivas Irreversíveis</h2></div>
-          <div class="mbd">
-            <div style="border: 1px solid rgba(239, 68, 68, 0.2); background: rgba(239, 68, 68, 0.02); padding: 16px; border-radius: var(--radius)">
-              <h3 style="color:#f87171; font-size:13px; margin-bottom:4px; font-weight:700">Zerar Banco de Dados</h3>
-              <p style="font-size:12px; color:var(--mut); margin-bottom:12px">Apaga todos os alvos e arquivos vinculados em memória.</p>
-              <button class="btn bd sm" onclick="limparBancoGeral()">Limpar Banco de Dados</button>
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
+<div class="ov" id="mod-oc">
+  <div class="mod" style="max-width:480px">
+    <div class="mh"><h3>Adicionar Ocorrencia</h3><button class="mc" onclick="fecharM('mod-oc')">&#x2715;</button></div>
+    <div class="mbd sy">
+      <div class="fld"><label>Data</label><input id="oc-dt" class="inp" placeholder="DD/MM/AAAA"></div>
+      <div class="fld"><label>Numero</label><input id="oc-num" class="inp"></div>
+      <div class="fld"><label>Tipo de Crime / Infracao</label><input id="oc-tip" class="inp"></div>
+      <div class="fld"><label>Descricao</label><textarea id="oc-desc" class="inp" rows="3"></textarea></div>
+      <div class="fld"><label>Status</label><select id="oc-st" class="inp"><option>EM INVESTIGACAO</option><option>ENCERRADA</option><option>ARQUIVADA</option></select></div>
+      <div class="fl g2g" style="justify-content:flex-end">
+        <button class="btn bgh sm" onclick="fecharM('mod-oc')">Cancelar</button>
+        <button class="btn bp sm" onclick="confirmarOcorr()">Adicionar</button>
+      </div>
+    </div>
   </div>
 </div>
 
 <script>
-  // BANCO DE DADOS EM MEMÓRIA LOCAL
-  let dbUsuarios = [
-    {login: "admin", pass: "12345678", nome: "Administrador Central", cargo: "Chefe de TI / Inteligência", role: "admin"},
-    {login: "wendel", pass: "pcgo2026", nome: "Wendel Matias", cargo: "Agente de Polícia", role: "operador"}
-  ];
+// SIPOL v3.0 — Motor JavaScript Completo e Limpo
+// Login: senha em texto puro — sem hash — sem CDN externa
 
-  let dbInvestigados = [
-    {
-      id: "1", nome: "Rafael Oliveira da Silva", cpf: "111.222.333-44", tipoProcedimento: "IP", ip: "1024/2026", agente: "Wendel Matias", obito: false, 
-      telefones: [{numero: "(62) 99888-1122", obs: "WhatsApp"}], veiculos: [], vinculos: [], enderecos: [], fotos: [], documentos: []
-    }
-  ];
+const $ = id => document.getElementById(id);
+const esc = s => { const d=document.createElement('div'); d.textContent=String(s||''); return d.innerHTML; };
+const gid = () => 'c'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const fid = () => { const yr=new Date().getFullYear(); return 'INV-'+yr+'-'+String(Math.floor(1000+Math.random()*9000)); };
+const ts  = () => new Date().toISOString();
+const fmtDT = iso => { try{ return new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(iso)); }catch(e){ return iso||'--'; } };
 
-  let dbLogs = [
-    {data: "24/06/2026 10:14", usuario: "SYSTEM", acao: "Inicialização do Subsistema de Segurança SIPOL v4.2"}
-  ];
+const PERFIL_H = {VISUALIZADOR:0,COOPERADOR:1,COLABORADOR:2,ADMIN:3};
+const PERFIL_L = {VISUALIZADOR:'Visualizador',COOPERADOR:'Cooperador',COLABORADOR:'Colaborador',ADMIN:'Administrador Geral'};
+const PERFIL_B = {VISUALIZADOR:'bgry',COOPERADOR:'bamb',COLABORADOR:'borg',ADMIN:'bred'};
 
-  let currentUser = null;
-  let tempDocs = [], tempFotosAlvo = [], tempVeiculos = [], tempVinculos = [], tempEnderecos = [], tempTelefones = [];
+let S=null, LOGO_TMP='', rlPg=0, algPg=0;
+const LOG_LIM=20;
+let tmpTelP=[],tmpTelU=[],tmpApel=[],tmpVei=[],tmpVinc=[],tmpEnder=[],tmpGaleria=[],tmpDocs=[],tmpCarr=[],tmpOcorr=[],tmpFotos={v:null,e:null};
+const OBIT_FECHADOS=new Set();
 
-  function pushLog(acao) {
-    const agora = new Date();
-    const dataStr = agora.toLocaleDateString('pt-BR') + ' ' + agora.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-    dbLogs.unshift({
-      data: dataStr,
-      usuario: currentUser ? currentUser.login.toUpperCase() : "DESCONHECIDO",
-      acao: acao
-    });
-    renderLogs();
+let CFG_INST={sistema:'SIPOL',nome:'Policia Civil de Minas Gerais',sigla:'PCMG / DECAR',delegacia:'Delegacia Esp. Crimes contra a Crianca e o Adolescente',cidade:'Belo Horizonte / MG',cabecalho:'POLICIA CIVIL DE MINAS GERAIS — DECAR'};
+
+const DB = {
+  ops:[
+    {id:'o1',nome:'Administrador Geral',cpf:'',login:'admin',senha:'Admin@2026',cargo:'Delegado',lotacao:'DECAR/PCMG',email:'admin@decar.gov.br',tel:'',perfil:'ADMIN',ativo:true,criadoEm:'2026-01-01T00:00:00Z'},
+    {id:'o2',nome:'Carlos Colaborador', cpf:'',login:'colab',senha:'Colab@2026',cargo:'Delegado Adj.',lotacao:'DECAR/PCMG',email:'colab@decar.gov.br',tel:'',perfil:'COLABORADOR',ativo:true,criadoEm:'2026-01-01T00:00:00Z'},
+    {id:'o3',nome:'Agente Marcos',      cpf:'',login:'editor',senha:'Editor@2026',cargo:'Agente de Policia',lotacao:'DECAR/PCMG',email:'marcos@decar.gov.br',tel:'',perfil:'COOPERADOR',ativo:true,criadoEm:'2026-01-01T00:00:00Z'},
+    {id:'o4',nome:'Escrituraria Ana',   cpf:'',login:'user',senha:'User@2026',cargo:'Escrituraria',lotacao:'DECAR/PCMG',email:'ana@decar.gov.br',tel:'',perfil:'VISUALIZADOR',ativo:true,criadoEm:'2026-01-01T00:00:00Z'},
+  ],
+  invs:[
+    {id:'i1',fid:'INV-2026-0487',ativo:true,obito:false,obitoData:'',fotoGaleria:[],docs:[],fotoUrl:null,
+     nome:'RAFAEL OLIVEIRA DA SILVA',cpf:'123.456.789-00',rg:'MG-12.345.678',nat:'Belo Horizonte / MG',nasc:'15/04/1992',nac:'Brasileira',mae:'Maria Aparecida de Oliveira',pai:'Joao Batista da Silva',ec:'Solteiro(a)',prof:'Auxiliar de Servicos Gerais',trb:'Nao informado',pele:'Parda',alt:'1,78m',pes:'72kg',tat:'Tatuagem caveira braco direito',email:'',obs:'Investigado principal no IP 0156/2026',
+     telp:[{num:'(31)9111-2222',obs:'WhatsApp'}],telu:[{num:'(31)9333-4444',obs:'Linha principal'}],apel:['Rafinha','Rafa'],
+     vei:[{pl:'ABC-1234',mod:'Fiat Strada',cha:'9BWZZZ377VT004251',cor:'Prata',prop:'Rafael Oliveira',usua:'Rafael Oliveira',cam:false,cavalo:'',carr:[],foto:null}],
+     vinc:[{nome:'CARLOS EDUARDO MENDES FERREIRA',tipo:'Comparsa'}],
+     ender:[{end:'Rua das Flores, 125 - BH/MG',tipo:'Residencia Principal',gps:'',foto:null}],
+     procTipo:'IP',ip:'2026-0156/DECAR',vpi:'VPI-0487',proc:'0001234-56.2026',del:'Dr. Jose Silva',esc:'Maria Santos',agt:'Marcos Oliveira',
+     oc:[{dt:'18/05/2026',num:'2026-0156',tip:'Furto Qualificado',desc:'Furto de residencia no bairro Santa Efigenia',st:'EM INVESTIGACAO'},{dt:'03/02/2024',num:'2024-0089',tip:'Receptacao',desc:'Apreensao de produtos de origem duvidosa',st:'ENCERRADA'}],
+     criadoEm:'2026-01-10T00:00:00Z',atualizadoEm:'2026-05-01T00:00:00Z'},
+    {id:'i2',fid:'INV-2026-0112',ativo:true,obito:false,obitoData:'',fotoGaleria:[],docs:[],fotoUrl:null,
+     nome:'CARLOS EDUARDO MENDES FERREIRA',cpf:'987.654.321-00',rg:'MG-98.765.432',nat:'Contagem / MG',nasc:'22/09/1988',nac:'Brasileira',mae:'Rosana Mendes',pai:'Paulo Ferreira',ec:'Casado(a)',prof:'Comerciante',trb:'Mercearia Sao Joao',pele:'Branca',alt:'1,72m',pes:'80kg',tat:'Cicatriz rosto esquerdo',email:'carlos@email.com',obs:'',
+     telp:[{num:'(31)9555-6666',obs:''}],telu:[],apel:['Cadu','Mendes'],
+     vei:[{pl:'XYZ-9876',mod:'Honda Civic',cha:'9BWZZZ377VT009876',cor:'Preto',prop:'Carlos Eduardo',usua:'Carlos Eduardo',cam:false,cavalo:'',carr:[],foto:null}],
+     vinc:[{nome:'RAFAEL OLIVEIRA DA SILVA',tipo:'Comparsa'}],ender:[{end:'Av. Joao Cesar de Oliveira, 3500 - Contagem/MG',tipo:'Residencia Principal',gps:'',foto:null}],
+     procTipo:'IP',ip:'2026-0022/DECAR',vpi:'VPI-0112',proc:'0009876-54.2026',del:'Dr. Jose Silva',esc:'Maria Santos',agt:'Marcos Oliveira',
+     oc:[{dt:'10/01/2026',num:'2026-0022',tip:'Trafico de Entorpecentes',desc:'Flagrante com 500g de cocaina',st:'EM INVESTIGACAO'}],
+     criadoEm:'2026-01-05T00:00:00Z',atualizadoEm:'2026-04-15T00:00:00Z'},
+    {id:'i3',fid:'INV-2025-1830',ativo:true,obito:true,obitoData:'15/06/2026',fotoGaleria:[],docs:[],fotoUrl:null,
+     nome:'FERNANDA CRISTINA SOUZA LIMA',cpf:'456.789.123-00',rg:'MG-45.678.912',nat:'Betim / MG',nasc:'05/11/1995',nac:'Brasileira',mae:'Aparecida Souza',pai:'',ec:'Divorciada',prof:'Bancaria',trb:'Banco do Brasil',pele:'Parda',alt:'1,65m',pes:'60kg',tat:'Tatuagem borboleta pulso direito',email:'fernanda@email.com',obs:'Obito em 15/06/2026.',
+     telp:[],telu:[{num:'(31)9777-8888',obs:''}],apel:['Fe','Fernandinha'],vei:[],vinc:[],ender:[],
+     procTipo:'IP',ip:'2025-0892/DECAR',vpi:'VPI-1830',proc:'0005555-44.2025',del:'Dr. Jose Silva',esc:'Maria Santos',agt:'Marcos Oliveira',
+     oc:[{dt:'22/11/2025',num:'2025-0892',tip:'Estelionato',desc:'Fraude bancaria via aplicativo. Vitima lesada em R$ 12.500,00',st:'ENCERRADA'}],
+     criadoEm:'2025-11-20T00:00:00Z',atualizadoEm:'2026-06-15T00:00:00Z'},
+  ],
+  solic:[],
+  logs:[{id:gid(),oid:'SYS',on:'SISTEMA',ol:'sys',ac:'INIT',re:'Sistema',rid:null,ts2:'2026-01-01T00:00:00Z'}],
+};
+
+const podeEdit   = () => S && PERFIL_H[S.perfil] >= PERFIL_H.COOPERADOR;
+const podeColabs = () => S && PERFIL_H[S.perfil] >= PERFIL_H.COLABORADOR;
+const isAdmin    = () => S && S.perfil === 'ADMIN';
+const maskCPF    = c => (S && S.perfil==='VISUALIZADOR' && c) ? c.replace(/(\d{3}\.\d{3}\.)\d{3}(-\d{2})/,'$1***$2') : (c||'--');
+
+function toast(msg,tipo='info'){
+  const el=document.createElement('div');
+  const cls={success:'tok',error:'terr',warn:'twrn',info:'tinf'};
+  el.className='t '+(cls[tipo]||'tinf'); el.textContent=msg;
+  $('TS').appendChild(el); setTimeout(()=>el.remove(),3200);
+}
+function abrirM(id){ $(id).classList.add('open'); }
+function fecharM(id){ $(id).classList.remove('open'); }
+function confirmar(tit,msg,cb){
+  $('cf-tit').textContent=tit; $('cf-msg').textContent=msg;
+  $('cf-ok').onclick=()=>{ fecharM('mod-cf'); cb(); }; abrirM('mod-cf');
+}
+function addLog(ac,re,rid){ if(!S)return; DB.logs.unshift({id:gid(),oid:S.id,on:S.nome,ol:S.login,ac,re,rid:rid||null,ts2:ts()}); }
+
+const RL={};
+function rlCheck(l){ const n=Date.now(); if(!RL[l]||n>RL[l].r)RL[l]={c:0,r:n+60000}; return RL[l].c<5; }
+function rlInc(l){ if(RL[l])RL[l].c++; }
+function rlReset(l){ if(RL[l])RL[l].c=0; }
+
+$('gl').addEventListener('keydown',e=>{ if(e.key==='Enter')$('gs').focus(); });
+$('gs').addEventListener('keydown',e=>{ if(e.key==='Enter')doLogin(); });
+
+async function doLogin(){
+  const l=$('gl').value.trim(), s=$('gs').value;
+  $('ge').style.display='none';
+  if(!rlCheck(l)){ $('ge').textContent='Muitas tentativas. Aguarde 60 segundos.'; $('ge').style.display=''; return; }
+  $('gbt').innerHTML='<span class="sp"></span>';
+  await new Promise(r=>setTimeout(r,350));
+  const op=DB.ops.find(o=>o.login===l&&o.senha===s&&o.ativo);
+  if(!op){ rlInc(l); $('ge').textContent='Login ou senha invalidos.'; $('ge').style.display=''; $('gbt').textContent='Logar no Sistema'; return; }
+  rlReset(l); S={...op}; addLog('LOGIN','Session');
+  $('gw').style.display='none'; $('app').style.display='block';
+  $('sb-av').textContent=S.nome.split(' ').slice(0,2).map(w=>w[0]).join('');
+  $('sb-nome').textContent=S.nome; $('sb-lot').textContent=S.lotacao;
+  $('sb-perfil').textContent='● '+PERFIL_L[S.perfil];
+  $('ng-rel').style.display=podeColabs()?'':'none';
+  $('ng-adm').style.display=podeColabs()?'':'none';
+  $('adm-logo-btn').style.display=isAdmin()?'':'none';
+  $('tab-cfg').style.display=isAdmin()?'':'none';
+  $('btn-excl').style.display=isAdmin()?'inline-flex':'none';
+  if($('p-agt'))$('p-agt').value=S.nome;
+  atualizarObit(); atualizarSolics(); populaSels(); ir('pesq');
+  $('gbt').textContent='Logar no Sistema';
+}
+function doLogout(){ addLog('LOGOUT','Session'); S=null; $('app').style.display='none'; $('gw').style.display='flex'; $('gl').value=''; $('gs').value=''; }
+
+function toggleMob(){ const sb=$('sb'),ov=$('mob-ov'),open=sb.classList.contains('open'); sb.classList.toggle('open',!open); ov.style.display=open?'none':'block'; }
+function fecharMob(){ $('sb').classList.remove('open'); $('mob-ov').style.display='none'; }
+
+const PGS=['pesq','cad','ri','rl','ro','adm','mp'];
+function ir(p){
+  PGS.forEach(id=>{ const el=$('pg-'+id); if(el){el.classList.remove('ativo');el.style.display='none';} const nb=$('nb-'+id); if(nb)nb.classList.toggle('on',id===p); });
+  const pg=$('pg-'+p); if(pg){pg.style.display='';pg.classList.add('ativo');}
+  fecharMob();
+  if(p==='pesq'){renderDash();renderRepo();}
+  if(p==='ri'){populaSels();filtrarRI();}
+  if(p==='rl'){rlPg=0;populaLogOps('rl-op');renderLogs();}
+  if(p==='ro')renderRelOps();
+  if(p==='adm'){admTab('op');renderAdmDash();atualizarObit();atualizarSolics();}
+  if(p==='mp')preenchMP();
+}
+
+function atualizarObit(){
+  const todos=DB.invs.filter(i=>i.obito), abertos=todos.filter(i=>!OBIT_FECHADOS.has(i.id)), n=todos.length;
+  const bc=$('obt-badge'); bc.textContent=n; bc.style.display=n?'':'none';
+  $('obt-sb').style.display=(n&&podeColabs())?'':'none';
+  $('obt-sb-n').textContent=n;
+  const oa=$('obt-alerts'); if(!oa)return;
+  oa.innerHTML=(abertos.length&&podeColabs())?abertos.map(i=>{
+    const d=i.obitoData||'data nao informada';
+    return '<div class="obt-box"><span>&#x26A0; <strong>'+esc(i.nome)+'</strong> &mdash; Obito em '+esc(d)+'</span>'
+      +'<div class="fl g1g" style="margin-left:auto;gap:5px">'
+      +'<button class="btn bgh sm" onclick="irFichaObito(\''+i.id+'\')">Ver Ficha</button>'
+      +'<button class="btn bd sm" onclick="fecharAlerta(\''+i.id+'\')">&#x2715; Fechar</button>'
+      +'</div></div>';
+  }).join(''):'';
+}
+function fecharAlerta(id){ OBIT_FECHADOS.add(id); atualizarObit(); }
+function irFichaObito(id){ ir('pesq'); setTimeout(()=>abrirFicha(id),80); }
+
+function renderDash(){
+  const el=$('dash'); if(!el)return;
+  const ativos=DB.invs.filter(i=>i.ativo&&!i.obito).length, obitos=DB.invs.filter(i=>i.obito).length;
+  const emCurso=DB.invs.reduce((s,i)=>s+(i.oc||[]).filter(o=>o.st==='EM INVESTIGACAO').length,0);
+  const veiculos=DB.invs.reduce((s,i)=>s+(i.vei||[]).length,0), ops=DB.ops.filter(o=>o.ativo).length;
+  const cards=[{l:'Investigados Ativos',v:ativos,c:'#38bdf8',i:'&#x1F3AF;'},{l:'Obitos Registrados',v:obitos,c:'#f87171',i:'&#x1F480;',adm:true},{l:'Invest. em Curso',v:emCurso,c:'#fbbf24',i:'&#x26A0;'},{l:'Veiculos',v:veiculos,c:'#a78bfa',i:'&#x1F697;'},{l:'Operadores Ativos',v:ops,c:'#4ade80',i:'&#x1F46E;',adm:true}];
+  el.innerHTML=cards.filter(c=>!c.adm||podeColabs()).map(c=>'<div class="st"><div class="sl">'+c.i+' '+c.l+'</div><div class="sv" style="color:'+c.c+'">'+c.v+'</div></div>').join('');
+}
+
+function pesq(){
+  const q=($('ipq').value||'').trim().toUpperCase(); if(!q){toast('Digite algo para pesquisar.','error');return;}
+  $('fw').style.display='none';
+  const res=DB.invs.filter(i=>i.nome.includes(q)||(i.cpf||'').replace(/\D/g,'').includes(q.replace(/\D/g,''))||i.fid.includes(q)||(i.apel||[]).some(a=>a.toUpperCase().includes(q))||(i.ip||'').toUpperCase().includes(q)||(i.vpi||'').toUpperCase().includes(q)||(i.proc||'').toUpperCase().includes(q)||(i.vei||[]).some(v=>(v.pl||'').toUpperCase().includes(q)));
+  const pr=$('pr');
+  if(!res.length){pr.innerHTML='<div style="text-align:center;padding:36px;color:var(--dim)"><div style="font-size:28px;margin-bottom:8px">&#x1F50D;</div><p>Nenhum resultado para <strong>'+esc(q)+'</strong></p></div>';return;}
+  pr.innerHTML='<p style="font-size:10px;color:var(--dim);margin-bottom:9px">'+res.length+' resultado(s)</p>'+res.map(i=>'<div class="card mb2 fade" style="cursor:pointer;transition:.15s" onclick="abrirFicha(\''+i.id+'\')" onmouseover="this.style.borderColor=\'var(--bd2)\'" onmouseout="this.style.borderColor=\'var(--bd)\'">'+'<div class="mbd fl g2g" style="justify-content:space-between;gap:10px"><div style="min-width:0"><div style="font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:6px">'+esc(i.nome)+(i.obito?' <span class="bdg bred">OBITO</span>':'')+'</div><div style="font-size:11px;color:var(--dim);display:flex;gap:12px;flex-wrap:wrap"><span class="mono">'+i.fid+'</span>'+(i.cpf?'<span>CPF: '+maskCPF(i.cpf)+'</span>':'')+(i.ip?'<span>IP: '+esc(i.ip)+'</span>':'')+((i.vei||[]).length?'<span>&#x1F697; '+(i.vei||[]).map(v=>esc(v.pl)).join(', ')+'</span>':'')+'</div></div><div class="fl g2g" style="flex-shrink:0;gap:6px">'+((i.oc||[]).filter(o=>o.st==='EM INVESTIGACAO').length?'<span class="bdg bamb">'+(i.oc||[]).filter(o=>o.st==='EM INVESTIGACAO').length+' invest.</span>':'')+'<span style="color:var(--dim);font-size:18px">&#x203A;</span></div></div></div>').join('');
+}
+function limPesq(){ $('ipq').value=''; $('pr').innerHTML=''; $('fw').style.display='none'; }
+
+function abrirFicha(id){
+  const i=DB.invs.find(x=>x.id===id); if(!i)return;
+  addLog('VIEW','Investigado',id); $('pr').innerHTML=''; $('fw').style.display='block';
+  const stB={'EM INVESTIGACAO':'bamb','ENCERRADA':'bgrn','ARQUIVADA':'bgry'};
+  $('fw').innerHTML='<div class="fade">'
+    +'<div class="fl g2g mb3" style="justify-content:space-between;align-items:center;flex-wrap:wrap;gap:9px">'
+    +'<div class="fl g2g" style="flex-wrap:wrap;gap:10px;align-items:center">'
+    +'<button class="btn bgh sm" onclick="limPesq()">&#x2190; Voltar</button>'
+    +(i.fotoGaleria&&i.fotoGaleria.length?'<img src="'+i.fotoGaleria[0]+'" style="width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid var(--bd2)" alt="Foto">'
+      :'<div style="width:52px;height:52px;border-radius:50%;background:var(--inp);border:2px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:22px">&#x1F464;</div>')
+    +'<div><div style="font-weight:700;font-size:15px">'+esc(i.nome)+'</div>'
+    +'<div class="fl g1g mt1">'+(i.obito?'<span class="bdg bred">OBITO</span>':'<span class="bdg bgrn">ATIVO</span>')+' <span style="font-size:10px;font-family:monospace;color:var(--dim);margin-left:4px">'+i.fid+'</span></div></div></div>'
+    +'<div class="fl g2g">'+(podeEdit()?'<button class="btn bs sm" onclick="editarInv(\''+id+'\')">&#x270F; Editar</button>':'')+'<button class="btn bs sm" onclick="imprimirFicha(\''+id+'\')">&#x1F5A8; Imprimir</button></div></div>'
+    +'<div class="g2 mb3">'
+    +'<div class="card"><div class="ch"><h2>Qualificacao</h2></div><div class="mbd" style="display:grid;grid-template-columns:1fr 1fr;gap:7px 16px;font-size:12px">'
+    +[['CPF',maskCPF(i.cpf)],['RG',i.rg||'--'],['Nascimento',i.nasc||'--'],['Naturalidade',i.nat||'--'],['Nacionalidade',i.nac||'--'],['Estado Civil',i.ec||'--'],['Mae',i.mae||'--'],['Pai',i.pai||'--'],['Profissao',i.prof||'--'],['Trabalho',i.trb||'--'],['Cor/Pele',i.pele||'--'],['Alt/Peso',(i.alt||'--')+'/'+(i.pes||'--')]].map(([l,v])=>'<div><span style="font-size:9px;color:var(--dim);display:block;text-transform:uppercase">'+l+'</span><span>'+esc(v)+'</span></div>').join('')+'</div></div>'
+    +'<div class="card"><div class="ch"><h2>Contato</h2></div><div class="mbd" style="font-size:12px">'
+    +(i.apel.length?'<div class="mb2"><span style="font-size:9px;color:var(--dim);text-transform:uppercase">Apelidos</span><div>'+i.apel.map(a=>'<span class="bdg bgry" style="margin-right:4px">'+esc(a)+'</span>').join('')+'</div></div>':'')
+    +(i.telp.length?'<div class="mb2"><span style="font-size:9px;color:var(--dim);text-transform:uppercase">Tel. Proprietario</span>'+i.telp.map(t=>'<div class="mono">'+esc(t.num)+(t.obs?' <span style="color:var(--dim)">('+esc(t.obs)+')</span>':'')+'</div>').join('')+'</div>':'')
+    +(i.telu.length?'<div class="mb2"><span style="font-size:9px;color:var(--dim);text-transform:uppercase">Tel. Usuario</span>'+i.telu.map(t=>'<div class="mono">'+esc(t.num)+(t.obs?' <span style="color:var(--dim)">('+esc(t.obs)+')</span>':'')+'</div>').join('')+'</div>':'')
+    +(i.tat?'<div><span style="font-size:9px;color:var(--dim);text-transform:uppercase">Tatuagens</span><div>'+esc(i.tat)+'</div></div>':'')
+    +'</div></div></div>'
+    +(i.vei.length?'<div class="card mb3"><div class="ch"><h2>Veiculos</h2></div><div class="mbd" style="padding:0"><div class="tw"><table><thead><tr><th>Placa</th><th>Modelo</th><th>Cor</th><th>Proprietario</th><th>Usuario</th><th>Carretas</th></tr></thead><tbody>'+i.vei.map(v=>'<tr><td class="mono"><strong>'+esc(v.pl)+'</strong></td><td>'+esc(v.mod)+'</td><td>'+esc(v.cor)+'</td><td>'+esc(v.prop)+'</td><td>'+esc(v.usua)+'</td><td class="mono">'+(v.carr&&v.carr.length?v.carr.join(', '):'--')+'</td></tr>').join('')+'</tbody></table></div></div></div>':'')
+    +(i.vinc.length?'<div class="card mb3"><div class="ch"><h2>Vinculos</h2></div><div class="mbd" style="padding:0"><div class="tw"><table><thead><tr><th>Nome</th><th>Classificacao</th></tr></thead><tbody>'+i.vinc.map(v=>'<tr><td>'+esc(v.nome)+'</td><td><span class="bdg bgry">'+esc(v.tipo)+'</span></td></tr>').join('')+'</tbody></table></div></div></div>':'')
+    +(i.ender.length?'<div class="card mb3"><div class="ch"><h2>Pontos de Interesse</h2></div><div class="mbd" style="padding:0"><div class="tw"><table><thead><tr><th>Endereco</th><th>Tipo</th><th>GPS</th></tr></thead><tbody>'+i.ender.map(e=>'<tr><td>'+esc(e.end)+'</td><td><span class="bdg bgry">'+esc(e.tipo)+'</span></td><td class="mono">'+esc(e.gps||'--')+'</td></tr>').join('')+'</tbody></table></div></div></div>':'')
+    +'<div class="card mb3"><div class="ch"><h2>Procedimento</h2></div><div class="mbd" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px 16px;font-size:12px">'
+    +[['Tipo',i.procTipo||'--'],['Numero',i.ip||'--'],['VPI',i.vpi||'--'],['Processo',i.proc||'--'],['Delegado',i.del||'--'],['Agente',i.agt||'--']].map(([l,v])=>'<div><span style="font-size:9px;color:var(--dim);display:block;text-transform:uppercase">'+l+'</span><span>'+esc(v)+'</span></div>').join('')+'</div></div>'
+    +'<div class="card mb3"><div class="ch"><h2>Ocorrencias</h2></div>'+(i.oc.length?'<div class="mbd" style="padding:0"><div class="tw"><table><thead><tr><th>Data</th><th>Numero</th><th>Tipo</th><th>Descricao</th><th>Status</th></tr></thead><tbody>'+i.oc.map(o=>'<tr><td>'+esc(o.dt)+'</td><td class="mono">'+esc(o.num)+'</td><td>'+esc(o.tip)+'</td><td>'+esc(o.desc)+'</td><td><span class="bdg '+(stB[o.st]||'bgry')+'">'+esc(o.st)+'</span></td></tr>').join('')+'</tbody></table></div></div>':'<div class="mbd" style="color:var(--dim);font-size:11px">Nenhuma ocorrencia.</div>')+'</div>'
+    +(i.fotoGaleria&&i.fotoGaleria.length?'<div class="card mb3"><div class="ch"><h2>Arquivo Fotografico</h2></div><div class="mbd"><div class="galeria">'+i.fotoGaleria.map(f=>'<div class="foto-wrap"><img src="'+f+'" loading="lazy"></div>').join('')+'</div></div></div>':'')
+    +(i.obs?'<div class="card"><div class="ch"><h2>Observacoes</h2></div><div class="mbd" style="font-size:12px;color:var(--mut)">'+esc(i.obs)+'</div></div>':'')
+    +'</div>';
+}
+
+function editarInv(id){
+  const i=DB.invs.find(x=>x.id===id); if(!i)return; ir('cad'); limForm();
+  $('fi-id').value=i.id; $('cad-tit').textContent='Editar: '+i.nome;
+  ['nome','cpf','rg','nat','nasc','nac','mae','pai','ec','prof','trb','email','pele','alt','pes','tat','obs'].forEach(f=>{ const el=$('q-'+f); if(el)el.value=i[f]||''; });
+  $('q-obt').checked=i.obito; togObt(); $('q-obt-dt').value=i.obitoData||'';
+  ['tipo','num','vpi','proc','del','esc','agt'].forEach(f=>{ const el=$('p-'+f); if(el)el.value=f==='tipo'?(i.procTipo||'IP'):(i[f==='num'?'ip':f]||''); });
+  if($('p-tipo'))$('p-tipo').value=i.procTipo||'IP';
+  if($('p-num'))$('p-num').value=i.ip||'';
+  tmpTelP=(i.telp||[]).map(t=>({...t})); tmpTelU=(i.telu||[]).map(t=>({...t}));
+  tmpApel=[...(i.apel||[])]; tmpVei=(i.vei||[]).map(v=>({...v,carr:[...(v.carr||[])]}));
+  tmpVinc=(i.vinc||[]).map(v=>({...v})); tmpEnder=(i.ender||[]).map(e=>({...e}));
+  tmpOcorr=(i.oc||[]).map(o=>({...o})); tmpGaleria=[...(i.fotoGaleria||[])]; tmpDocs=(i.docs||[]).map(d=>({...d}));
+  renderTelP();renderTelU();renderApel();renderVei();renderVinc();renderEnder();renderOcorr();renderGaleria();renderDocs();ftab('q');
+}
+
+function limForm(){
+  $('fi-id').value=''; $('cad-tit').textContent='Novo Investigado';
+  ['q-nome','q-cpf','q-rg','q-nat','q-nasc','q-mae','q-pai','q-prof','q-trb','q-email','q-pele','q-alt','q-pes','q-tat','q-obs','p-num','p-vpi','p-proc','p-del','p-esc'].forEach(id=>{if($(id))$(id).value='';});
+  if($('q-nac'))$('q-nac').value='Brasileira'; if($('q-ec'))$('q-ec').value='';
+  if($('q-obt')){$('q-obt').checked=false;togObt();} if($('q-obt-dt'))$('q-obt-dt').value='';
+  if($('p-tipo'))$('p-tipo').value='IP'; if($('p-agt')&&S)$('p-agt').value=S.nome;
+  tmpTelP=[];tmpTelU=[];tmpApel=[];tmpVei=[];tmpVinc=[];tmpEnder=[];tmpOcorr=[];tmpGaleria=[];tmpDocs=[];tmpCarr=[];tmpFotos={v:null,e:null};
+  renderTelP();renderTelU();renderApel();renderVei();renderVinc();renderEnder();renderOcorr();renderGaleria();renderDocs();
+  ['tp-num','tp-obs','tu-num','tu-obs','apel-in','v-mod','v-pla','v-cha','v-cor','v-prop','v-usua','v-cavalo','carr-in','k-nome','e-end','e-gps'].forEach(id=>{if($(id))$(id).value='';});
+  if($('v-cam')){$('v-cam').checked=false;togCam();}
+}
+
+function salvarInv(){
+  const nome=($('q-nome').value||'').trim().toUpperCase(); if(!nome){toast('Nome Completo e obrigatorio.','error');ftab('q');return;}
+  const id=$('fi-id').value||'';
+  const inv={id:id||gid(),fid:id?(DB.invs.find(x=>x.id===id)||{}).fid||fid():fid(),ativo:true,obito:$('q-obt').checked,obitoData:$('q-obt').checked?($('q-obt-dt').value||''):'',fotoGaleria:[...tmpGaleria],docs:[...tmpDocs],fotoUrl:tmpGaleria[0]||null,nome,cpf:($('q-cpf').value||'').trim(),rg:($('q-rg').value||'').trim(),nat:($('q-nat').value||'').trim(),nasc:($('q-nasc').value||'').trim(),nac:($('q-nac').value||'').trim(),mae:($('q-mae').value||'').trim(),pai:($('q-pai').value||'').trim(),ec:($('q-ec').value||'').trim(),prof:($('q-prof').value||'').trim(),trb:($('q-trb').value||'').trim(),email:($('q-email').value||'').trim(),pele:($('q-pele').value||'').trim(),alt:($('q-alt').value||'').trim(),pes:($('q-pes').value||'').trim(),tat:($('q-tat').value||'').trim(),obs:($('q-obs').value||'').trim(),telp:tmpTelP.map(t=>({...t})),telu:tmpTelU.map(t=>({...t})),apel:[...tmpApel],vei:tmpVei.map(v=>({...v,carr:[...(v.carr||[])]})),vinc:tmpVinc.map(v=>({...v})),ender:tmpEnder.map(e=>({...e})),oc:tmpOcorr.map(o=>({...o})),procTipo:($('p-tipo').value||'').trim(),ip:($('p-num').value||'').trim(),vpi:($('p-vpi').value||'').trim(),proc:($('p-proc').value||'').trim(),del:($('p-del').value||'').trim(),esc:($('p-esc').value||'').trim(),agt:($('p-agt').value||'').trim(),criadoEm:id?(DB.invs.find(x=>x.id===id)||{}).criadoEm||ts():ts(),atualizadoEm:ts()};
+  const idx=DB.invs.findIndex(x=>x.id===inv.id);
+  if(idx>-1){DB.invs[idx]=inv;addLog('UPDATE','Investigado',inv.id);toast('Investigado atualizado!','success');}
+  else{DB.invs.push(inv);addLog('CREATE','Investigado',inv.id);toast('Investigado cadastrado!','success');}
+  limForm();renderRepo();atualizarObit();populaSels();ir('pesq');
+}
+
+function excluirInvAtual(){
+  if(!isAdmin()){toast('Sem permissao.','error');return;}
+  const id=$('fi-id').value; if(!id)return;
+  const inv=DB.invs.find(x=>x.id===id);
+  confirmar('Excluir Investigado','Excluir definitivamente "'+(inv?inv.nome:id)+'"?',()=>{
+    DB.invs=DB.invs.filter(x=>x.id!==id); addLog('DELETE','Investigado',id);
+    toast('Investigado excluido.','success'); limForm();renderRepo();atualizarObit();populaSels();ir('pesq');
+  });
+}
+
+function renderRepo(){
+  const q=($('rep-q').value||'').trim().toUpperCase(), st=($('rep-st').value||'');
+  const lista=DB.invs.filter(i=>{const m=!q||i.nome.includes(q)||i.fid.includes(q)||(i.cpf||'').includes(q);if(!m)return false;if(st==='a')return i.ativo&&!i.obito;if(st==='o')return i.obito;return true;});
+  const tb=$('rep-body');
+  tb.innerHTML=lista.map(i=>'<tr class="'+(i.obito?'row-obt':'')+'"><td><div style="font-weight:700">'+esc(i.nome)+'</div><div style="font-size:10px;font-family:monospace;color:var(--dim)">'+i.fid+'</div></td><td class="mono" style="font-size:11px">'+maskCPF(i.cpf)+'</td><td style="font-size:11px">'+esc((i.procTipo||'')+(i.ip?' '+i.ip:''))+'</td><td style="font-size:11px">'+esc(i.agt||'--')+'</td><td>'+(i.obito?'<span class="bdg bred">OBITO</span>':'<span class="bdg bgrn">ATIVO</span>')+'</td><td class="tr"><button class="btn bs sm" onclick="abrirFicha(\''+i.id+'\')">Ver</button> '+(podeEdit()?'<button class="btn bgh sm" onclick="editarInv(\''+i.id+'\')">Editar</button>':'')+'</td></tr>').join('')||'<tr><td colspan="6" style="text-align:center;color:var(--dim);padding:18px">Nenhum registro encontrado.</td></tr>';
+  populaSels();
+}
+
+function ftab(t){
+  ['q','v','k','e','d','p'].forEach(id=>{const el=$('ft-'+id);if(el)el.style.display='none';});
+  const el=$('ft-'+t);if(el)el.style.display='';
+  document.querySelectorAll('.tabs .tab').forEach((b,i)=>b.classList.toggle('on',['q','v','k','e','d','p'][i]===t));
+}
+function togObt(){ const dt=$('q-obt-dt');if(dt)dt.style.display=$('q-obt').checked?'':'none'; }
+function togCam(){ const box=$('v-cam-box');if(box)box.style.display=$('v-cam').checked?'':'none'; }
+
+function addTel(tipo){
+  const nId=tipo==='p'?'tp-num':'tu-num', oId=tipo==='p'?'tp-obs':'tu-obs';
+  const num=$(nId).value.trim();if(!num)return;
+  const obs=$(oId).value.trim();
+  if(tipo==='p')tmpTelP.push({num,obs});else tmpTelU.push({num,obs});
+  $(nId).value='';$(oId).value='';
+  if(tipo==='p')renderTelP();else renderTelU();
+}
+function renderTelP(){const el=$('lst-tp');if(!el)return;el.innerHTML=tmpTelP.map((t,i)=>'<div class="item-din"><div class="item-din-info">&#x260E; <strong>'+esc(t.num)+'</strong>'+(t.obs?' <span style="color:var(--dim)">('+esc(t.obs)+')</span>':'')+'</div><button type="button" class="btn bd sm" onclick="tmpTelP.splice('+i+',1);renderTelP()">&#x2715;</button></div>').join('');}
+function renderTelU(){const el=$('lst-tu');if(!el)return;el.innerHTML=tmpTelU.map((t,i)=>'<div class="item-din"><div class="item-din-info">&#x260E; <strong>'+esc(t.num)+'</strong>'+(t.obs?' <span style="color:var(--dim)">('+esc(t.obs)+')</span>':'')+'</div><button type="button" class="btn bd sm" onclick="tmpTelU.splice('+i+',1);renderTelU()">&#x2715;</button></div>').join('');}
+function addApel(){const v=$('apel-in').value.trim();if(!v)return;tmpApel.push(v);$('apel-in').value='';renderApel();}
+function renderApel(){const el=$('lst-apel');if(!el)return;el.innerHTML=tmpApel.map((a,i)=>'<div class="item-din"><div class="item-din-info"><span class="bdg bgry">'+esc(a)+'</span></div><button type="button" class="btn bd sm" onclick="tmpApel.splice('+i+',1);renderApel()">&#x2715;</button></div>').join('');}
+function addCarreta(){const v=$('carr-in').value.trim().toUpperCase();if(!v)return;tmpCarr.push(v);$('carr-in').value='';renderCarr();}
+function renderCarr(){const el=$('lst-carr');if(!el)return;el.innerHTML=tmpCarr.map((c,i)=>'<div class="item-din"><div class="item-din-info">&#x1F69B; Carreta: <strong>'+esc(c)+'</strong></div><button type="button" class="btn bd sm" onclick="tmpCarr.splice('+i+',1);renderCarr()">&#x2715;</button></div>').join('');}
+function carregarFoto(tipo,input){if(!input.files||!input.files[0])return;const r=new FileReader();r.onload=e=>{tmpFotos[tipo]=e.target.result;};r.readAsDataURL(input.files[0]);}
+function addVei(){
+  const mod=($('v-mod').value||'').trim(), pla=($('v-pla').value||'').trim().toUpperCase();
+  if(!mod||!pla){toast('Modelo e Placa sao obrigatorios.','error');return;}
+  tmpVei.push({pl:pla,mod,cha:($('v-cha').value||'').trim(),cor:($('v-cor').value||'').trim(),prop:($('v-prop').value||'').trim(),usua:($('v-usua').value||'').trim(),cam:($('v-cam').checked||false),cavalo:($('v-cavalo').value||'').trim().toUpperCase(),carr:[...tmpCarr],foto:tmpFotos.v});
+  ['v-mod','v-pla','v-cha','v-cor','v-prop','v-usua','v-cavalo'].forEach(id=>{if($(id))$(id).value='';});
+  if($('v-cam')){$('v-cam').checked=false;togCam();}
+  tmpCarr=[];tmpFotos.v=null;renderCarr();renderVei();
+}
+function renderVei(){const el=$('lst-vei');if(!el)return;if(!tmpVei.length){el.innerHTML='<div style="color:var(--dim);font-size:11px;padding:6px">Nenhum veiculo adicionado.</div>';return;}el.innerHTML=tmpVei.map((v,i)=>'<div class="item-din"><div class="item-din-info"><strong>'+esc(v.pl)+'</strong> &mdash; '+esc(v.mod)+(v.cam?' <span class="bdg bamb">CAMINHAO</span>':'')+(v.carr&&v.carr.length?' Carretas: '+v.carr.map(c=>'<span class="bdg bgry">'+esc(c)+'</span>').join(' '):'')+'</div><button type="button" class="btn bd sm" onclick="tmpVei.splice('+i+',1);renderVei()">&#x2715;</button></div>').join('');}
+function addVinc(){const nome=($('k-nome').value||'').trim();if(!nome)return;tmpVinc.push({nome,tipo:$('k-tipo').value||''});$('k-nome').value='';renderVinc();}
+function renderVinc(){const el=$('lst-vinc');if(!el)return;el.innerHTML=tmpVinc.map((v,i)=>'<div class="item-din"><div class="item-din-info">&#x1F464; <strong>'+esc(v.nome)+'</strong> <span class="bdg bgry">'+esc(v.tipo)+'</span></div><button type="button" class="btn bd sm" onclick="tmpVinc.splice('+i+',1);renderVinc()">&#x2715;</button></div>').join('');}
+function addEnder(){const end=($('e-end').value||'').trim();if(!end)return;tmpEnder.push({end,tipo:($('e-tipo').value||'').trim(),gps:($('e-gps').value||'').trim(),foto:tmpFotos.e});['e-end','e-gps'].forEach(id=>{if($(id))$(id).value='';});tmpFotos.e=null;renderEnder();}
+function renderEnder(){const el=$('lst-ender');if(!el)return;el.innerHTML=tmpEnder.map((e,i)=>'<div class="item-din"><div class="item-din-info">&#x1F4CD; <strong>'+esc(e.tipo)+'</strong> &mdash; '+esc(e.end)+(e.gps?' <span style="color:var(--dim)">('+esc(e.gps)+')</span>':'')+'</div><button type="button" class="btn bd sm" onclick="tmpEnder.splice('+i+',1);renderEnder()">&#x2715;</button></div>').join('');}
+function uploadFotoGaleria(input){if(!input.files||!input.files[0])return;const file=input.files[0];if(file.size>3*1024*1024){toast('Foto muito grande. Max 3MB.','error');return;}const r=new FileReader();r.onload=e=>{tmpGaleria.push(e.target.result);renderGaleria();};r.readAsDataURL(file);}
+function renderGaleria(){const el=$('galeria');if(!el)return;el.innerHTML=tmpGaleria.map((f,i)=>'<div class="foto-wrap"><img src="'+f+'" loading="lazy"><button type="button" class="foto-del" onclick="tmpGaleria.splice('+i+',1);renderGaleria()">&#x2715;</button></div>').join('');}
+function uploadDoc(input){if(!input.files||!input.files[0])return;const file=input.files[0];const r=new FileReader();r.onload=e=>{tmpDocs.push({nome:file.name,b64:e.target.result});renderDocs();};r.readAsDataURL(file);}
+function renderDocs(){const el=$('lst-doc');if(!el)return;el.innerHTML=tmpDocs.map((d,i)=>'<div class="item-din"><div class="item-din-info">&#x1F4C4; '+esc(d.nome)+'</div><button type="button" class="btn bd sm" onclick="tmpDocs.splice('+i+',1);renderDocs()">&#x2715;</button></div>').join('');}
+function addOcorr(){abrirM('mod-oc');}
+function confirmarOcorr(){
+  const tip=($('oc-tip').value||'').trim();if(!tip){toast('Tipo de crime e obrigatorio.','error');return;}
+  tmpOcorr.push({dt:($('oc-dt').value||'').trim(),num:($('oc-num').value||'').trim(),tip,desc:($('oc-desc').value||'').trim(),st:$('oc-st').value});
+  ['oc-dt','oc-num','oc-tip','oc-desc'].forEach(id=>{if($(id))$(id).value='';});
+  fecharM('mod-oc');renderOcorr();
+}
+function renderOcorr(){
+  const el=$('lst-oc');if(!el)return;
+  if(!tmpOcorr.length){el.innerHTML='<div style="color:var(--dim);font-size:11px;padding:6px">Nenhuma ocorrencia cadastrada.</div>';return;}
+  const stB={'EM INVESTIGACAO':'bamb','ENCERRADA':'bgrn','ARQUIVADA':'bgry'};
+  el.innerHTML=tmpOcorr.map((o,i)=>'<div class="item-din"><div class="item-din-info">'+(o.dt?'<strong>'+esc(o.dt)+'</strong> &mdash; ':'')+esc(o.tip)+' <span class="bdg '+(stB[o.st]||'bgry')+'">'+esc(o.st)+'</span></div><button type="button" class="btn bd sm" onclick="tmpOcorr.splice('+i+',1);renderOcorr()">&#x2715;</button></div>').join('');
+}
+
+function imprimirFicha(id){
+  const i=DB.invs.find(x=>x.id===id);if(!i)return;addLog('EXPORT','Investigado',id);
+  // usa blob url
+  const fotos=(i.fotoGaleria||[]).slice(0,4).map(f=>'<img src="'+f+'" style="width:120px;height:120px;object-fit:cover;border:1px solid #ccc;border-radius:4px">').join('');
+  const _html_imp=('<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:Arial,sans-serif;font-size:12px;padding:20px;color:#000}.hdr{display:flex;align-items:center;gap:12px;border-bottom:2px solid #000;padding-bottom:12px;margin-bottom:16px}.hdr h1{font-size:14px;font-weight:700}.sec{margin-top:16px;border-top:1px solid #ccc;padding-top:10px;page-break-inside:avoid}.sec h3{font-size:11px;text-transform:uppercase;margin-bottom:8px;color:#003366}.g{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}.f label{font-size:9px;color:#666;text-transform:uppercase;display:block}.fotos{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}@media print{body{padding:10mm}}</style></head><body>'
+    +'<div class="hdr">'+(i.fotoGaleria&&i.fotoGaleria[0]?'<img src="'+i.fotoGaleria[0]+'" style="width:70px;height:70px;border-radius:50%;object-fit:cover;border:2px solid #ccc">':'')
+    +'<div><h1>POLICIA CIVIL DE MINAS GERAIS &mdash; DECAR</h1><p>SIPOL &mdash; Ficha do Investigado &mdash; DOCUMENTO RESTRITO</p><p style="font-size:10px;color:#666">Emitido em: '+new Date().toLocaleString('pt-BR')+'</p></div></div>'
+    +'<div><strong style="font-size:18px">'+i.nome+'</strong> &nbsp;<span style="font-size:11px;color:#003366;font-family:monospace">'+i.fid+'</span>'+(i.obito?'<span style="background:#fee2e2;color:#dc2626;border-radius:3px;padding:2px 6px;margin-left:6px;font-size:10px;font-weight:700">OBITO</span>':'')+'</div>'
+    +'<div class="sec"><h3>Qualificacao</h3><div class="g">'+[['CPF',i.cpf||'--'],['RG',i.rg||'--'],['Nascimento',i.nasc||'--'],['Naturalidade',i.nat||'--'],['Nacionalidade',i.nac||'--'],['Estado Civil',i.ec||'--'],['Mae',i.mae||'--'],['Pai',i.pai||'--'],['Profissao',i.prof||'--'],['Trabalho',i.trb||'--'],['Pele',i.pele||'--'],['Alt/Peso',(i.alt||'--')+'/'+(i.pes||'--')]].map(([l,v])=>'<div class="f"><label>'+l+'</label><span>'+v+'</span></div>').join('')+'</div></div>'
+    +(i.apel.length?'<div class="sec"><h3>Apelidos</h3><p>'+i.apel.join(', ')+'</p></div>':'')
+    +(i.telp.length||i.telu.length?'<div class="sec"><h3>Telefones</h3><p>'+[...i.telp.map(t=>'Prop: '+t.num+(t.obs?' ('+t.obs+')':'')), ...i.telu.map(t=>'Usu: '+t.num+(t.obs?' ('+t.obs+')':''))].join(' | ')+'</p></div>':'')
+    +(i.vei.length?'<div class="sec"><h3>Veiculos</h3>'+i.vei.map(v=>'<p><strong>'+v.pl+'</strong> &mdash; '+v.mod+' | Prop: '+v.prop+(v.cam?' [CAMINHAO]':'')+(v.carr&&v.carr.length?' Carretas: '+v.carr.join(', '):'')+'</p>').join('')+'</div>':'')
+    +(i.vinc.length?'<div class="sec"><h3>Vinculos</h3>'+i.vinc.map(v=>'<p>'+v.nome+' ('+v.tipo+')</p>').join('')+'</div>':'')
+    +(i.ender.length?'<div class="sec"><h3>Pontos de Interesse</h3>'+i.ender.map(e=>'<p>['+e.tipo+'] '+e.end+(e.gps?' GPS:'+e.gps:'')+'</p>').join('')+'</div>':'')
+    +'<div class="sec"><h3>Procedimento</h3><div class="g">'+[['Tipo',i.procTipo||'--'],['Numero',i.ip||'--'],['VPI',i.vpi||'--'],['Processo',i.proc||'--'],['Delegado',i.del||'--'],['Agente',i.agt||'--']].map(([l,v])=>'<div class="f"><label>'+l+'</label><span>'+v+'</span></div>').join('')+'</div></div>'
+    +(i.oc&&i.oc.length?'<div class="sec"><h3>Ocorrencias</h3>'+i.oc.map(o=>'<p><strong>'+o.tip+'</strong> &mdash; '+[o.dt,o.num,o.st].filter(Boolean).join(' | ')+(o.desc?'<br>'+o.desc:'')+'</p>').join('')+'</div>':'')
+    +(fotos?'<div class="sec"><h3>Arquivo Fotografico</h3><div class="fotos">'+fotos+'</div></div>':'')
+    +'<script>window.onload=function(){window.print()}<\/script></body></html>');
+  const _blob=new Blob([_html_imp],{type:'text/html;charset=utf-8'});
+  const _url=URL.createObjectURL(_blob);
+  const _a=document.createElement('a');_a.href=_url;_a.target='_blank';_a.click();
+  setTimeout(()=>URL.revokeObjectURL(_url),5000);
+}
+
+function populaSels(){
+  ['ri-sel'].forEach(id=>{const sel=$(id);if(!sel)return;const cur=sel.value;sel.innerHTML='<option value="">Selecione...</option>'+DB.invs.map(i=>'<option value="'+i.id+'">'+esc(i.nome)+' ('+i.fid+')</option>').join('');sel.value=cur;});
+}
+
+function filtrarRI(){
+  const q=($('ri-q')?$('ri-q').value||'':'').trim().toUpperCase();
+  const st=$('ri-st')?$('ri-st').value||'':'';
+  const sel=$('ri-sel'); if(!sel) return;
+  const cur=sel.value;
+  const lista=DB.invs.filter(i=>{
+    const match=!q||i.nome.includes(q)||(i.cpf||'').includes(q)||i.fid.includes(q)||(i.ip||'').toUpperCase().includes(q);
+    if(!match) return false;
+    if(st==='a') return i.ativo&&!i.obito;
+    if(st==='o') return i.obito;
+    return true;
+  });
+  sel.innerHTML='<option value="">Selecione ('+lista.length+' encontrado(s))...</option>'
+    +lista.map(i=>'<option value="'+i.id+'">'
+      +esc(i.nome)+' ('+i.fid+')'
+      +(i.obito?' [OBITO]':'')+''
+      +(i.ip?' | '+esc(i.ip):'')
+    +'</option>').join('');
+  sel.value=cur;
+}
+
+function limparRI(){
+  if($('ri-q'))$('ri-q').value='';
+  if($('ri-st'))$('ri-st').value='';
+  if($('ri-sel'))$('ri-sel').value='';
+  const res=$('rires'); if(res) res.innerHTML='';
+  filtrarRI();
+}
+
+function imprimirRI(){
+  const id=$('ri-sel').value;
+  const inv=DB.invs.find(i=>i.id===id);
+  if(!inv){toast('Selecione um investigado e clique em Gerar primeiro.','error');return;}
+  addLog('EXPORT','Investigado',id);
+  const stB={'EM INVESTIGACAO':'#d97706','ENCERRADA':'#10b981','ARQUIVADA':'#64748b'};
+  const fotos=(inv.fotoGaleria||[]).slice(0,6).map(f=>'<img src="'+f+'" style="width:110px;height:110px;object-fit:cover;border:1px solid #ccc;border-radius:4px">').join('');
+  const html='<!DOCTYPE html><html><head><meta charset="UTF-8">'
+    +'<style>body{font-family:Arial,sans-serif;font-size:12px;padding:20px;color:#000}'
+    +'.hdr{display:flex;align-items:center;gap:14px;border-bottom:2px solid #000;padding-bottom:14px;margin-bottom:18px}'
+    +'.hdr h1{font-size:14px;font-weight:700;margin-bottom:2px}'
+    +'.hdr p{font-size:10px;color:#555}'
+    +'.titulo{font-size:19px;font-weight:700;margin-bottom:4px}'
+    +'.fid{font-family:monospace;font-size:12px;color:#003366}'
+    +'.badge{display:inline-block;padding:2px 8px;border-radius:3px;font-size:9px;font-weight:700;text-transform:uppercase;margin-left:8px}'
+    +'.ativo{background:#d1fae5;color:#065f46;border:1px solid #6ee7b7}'
+    +'.obito{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5}'
+    +'.sec{margin-top:14px;border-top:1px solid #ccc;padding-top:10px;page-break-inside:avoid}'
+    +'.sec h3{font-size:10px;text-transform:uppercase;margin-bottom:8px;color:#003366;font-weight:700;letter-spacing:.05em}'
+    +'.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px 16px}'
+    +'.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:5px 16px}'
+    +'.f label{font-size:9px;color:#666;text-transform:uppercase;display:block}'
+    +'.f span{font-size:12px}'
+    +'.oc{border:1px solid #e5e7eb;border-radius:4px;padding:8px;margin-bottom:6px}'
+    +'.oc-h{display:flex;justify-content:space-between;margin-bottom:3px}'
+    +'.oc-st{font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px}'
+    +'.fotos{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}'
+    +'.rodape{margin-top:28px;border-top:1px solid #000;padding-top:8px;font-size:9px;color:#666;display:flex;justify-content:space-between}'
+    +'@media print{.btn-imp{display:none!important}}</style></head><body>'
+    +'<div style="text-align:right;margin-bottom:10px">'
+    +'<button class="btn-imp" onclick="window.print()" style="background:#003366;color:#fff;border:none;padding:7px 16px;border-radius:4px;cursor:pointer;font-size:12px">Imprimir / Salvar PDF</button></div>'
+    +'<div class="hdr">'
+    +(inv.fotoGaleria&&inv.fotoGaleria[0]
+      ?'<img src="'+inv.fotoGaleria[0]+'" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid #003366;flex-shrink:0">'
+      :'<div style="width:72px;height:72px;border-radius:50%;background:#f3f4f6;border:2px solid #d1d5db;display:flex;align-items:center;justify-content:center;font-size:30px;flex-shrink:0">&#x1F464;</div>')
+    +'<div><h1>POLICIA CIVIL DE MINAS GERAIS &mdash; DECAR</h1><p>SIPOL &mdash; Ficha do Investigado &mdash; DOCUMENTO RESTRITO</p>'
+    +'<p style="margin-top:2px">Emitido em: '+new Date().toLocaleString('pt-BR')+(S?' &nbsp;|&nbsp; Operador: '+S.nome:'')+'</p></div></div>'
+    +'<div class="titulo">'+inv.nome+'<span class="badge '+(inv.obito?'obito':'ativo')+'">'+(inv.obito?'OBITO':'ATIVO')+'</span></div>'
+    +'<div style="margin-bottom:14px"><span class="fid">'+inv.fid+'</span>'
+    +(inv.obito&&inv.obitoData?' &nbsp;<span style="font-size:11px;color:#991b1b">Obito em: '+inv.obitoData+'</span>':'')+'</div>'
+    +'<div class="sec"><h3>Qualificacao</h3><div class="grid">'
+    +[['CPF',inv.cpf||'--'],['RG',inv.rg||'--'],['Nascimento',inv.nasc||'--'],
+      ['Naturalidade',inv.nat||'--'],['Nacionalidade',inv.nac||'--'],['Estado Civil',inv.ec||'--'],
+      ['Mae',inv.mae||'--'],['Pai',inv.pai||'--'],['Profissao',inv.prof||'--'],
+      ['Local Trabalho',inv.trb||'--'],['E-mail',inv.email||'--'],['Pele',inv.pele||'--'],
+      ['Altura',inv.alt||'--'],['Peso',inv.pes||'--']
+    ].map(([l,v])=>'<div class="f"><label>'+l+'</label><span>'+v+'</span></div>').join('')+'</div></div>'
+    +(inv.tat?'<div class="sec"><h3>Tatuagens / Sinais</h3><p>'+inv.tat+'</p></div>':'')
+    +((inv.apel&&inv.apel.length)||(inv.telp&&inv.telp.length)||(inv.telu&&inv.telu.length)?
+      '<div class="sec"><h3>Contato</h3><div class="grid2">'
+      +(inv.apel&&inv.apel.length?'<div class="f"><label>Apelidos</label><span>'+inv.apel.join(' | ')+'</span></div>':'')
+      +(inv.telp&&inv.telp.length?'<div class="f"><label>Tel. Proprietario</label><span>'+inv.telp.map(t=>t.num+(t.obs?' ('+t.obs+')':'')).join(', ')+'</span></div>':'')
+      +(inv.telu&&inv.telu.length?'<div class="f"><label>Tel. Usuario</label><span>'+inv.telu.map(t=>t.num+(t.obs?' ('+t.obs+')':'')).join(', ')+'</span></div>':'')
+      +'</div></div>':'')
+    +(inv.vei&&inv.vei.length?'<div class="sec"><h3>Veiculos ('+inv.vei.length+')</h3>'
+      +inv.vei.map(v=>'<div style="border:1px solid #e5e7eb;padding:7px;margin-bottom:5px;border-radius:4px"><div class="grid">'
+        +'<div class="f"><label>Placa</label><span style="font-family:monospace;font-weight:700">'+v.pl+'</span></div>'
+        +'<div class="f"><label>Modelo</label><span>'+v.mod+'</span></div>'
+        +'<div class="f"><label>Cor</label><span>'+v.cor+'</span></div>'
+        +'<div class="f"><label>Proprietario</label><span>'+v.prop+'</span></div>'
+        +'<div class="f"><label>Usuario</label><span>'+v.usua+'</span></div>'
+        +(v.cam?'<div class="f"><label>Carretas</label><span>'+(v.carr&&v.carr.length?v.carr.join(' | '):'--')+'</span></div>':'')
+        +'</div></div>').join('')+'</div>':'')
+    +(inv.vinc&&inv.vinc.length?'<div class="sec"><h3>Vinculos</h3>'
+      +inv.vinc.map(v=>'<p style="margin-bottom:3px"><strong>'+v.nome+'</strong> &mdash; '+v.tipo+'</p>').join('')+'</div>':'')
+    +(inv.ender&&inv.ender.length?'<div class="sec"><h3>Pontos de Interesse</h3>'
+      +inv.ender.map(e=>'<p style="margin-bottom:3px">[<strong>'+e.tipo+'</strong>] '+e.end+(e.gps?' <em style="color:#666;font-size:10px">GPS: '+e.gps+'</em>':'')+'</p>').join('')+'</div>':'')
+    +'<div class="sec"><h3>Procedimento</h3><div class="grid">'
+    +[['Tipo',inv.procTipo||'--'],['Numero',inv.ip||'--'],['VPI',inv.vpi||'--'],
+      ['Processo',inv.proc||'--'],['Delegado',inv.del||'--'],['Escrivao',inv.esc||'--'],['Agente',inv.agt||'--']
+    ].map(([l,v])=>'<div class="f"><label>'+l+'</label><span>'+v+'</span></div>').join('')+'</div></div>'
+    +(inv.oc&&inv.oc.length?'<div class="sec"><h3>Ocorrencias ('+inv.oc.length+')</h3>'
+      +inv.oc.map(o=>'<div class="oc"><div class="oc-h"><strong>'+o.tip+'</strong>'
+        +'<span class="oc-st" style="background:'+(stB[o.st]||'#6b7280')+'22;color:'+(stB[o.st]||'#6b7280')+'">'+o.st+'</span></div>'
+        +(o.dt||o.num?'<p style="font-size:10px;color:#666;margin:2px 0">'+(o.dt||'')+(o.num?' | '+o.num:'')+'</p>':'')
+        +(o.desc?'<p style="margin:0;font-size:11px">'+o.desc+'</p>':'')+'</div>').join('')+'</div>':'')
+    +(fotos?'<div class="sec"><h3>Arquivo Fotografico</h3><div class="fotos">'+fotos+'</div></div>':'')
+    +(inv.obs?'<div class="sec"><h3>Observacoes</h3><p>'+inv.obs+'</p></div>':'')
+    +'<div class="rodape"><span>SIPOL &mdash; DECAR/PCMG &mdash; DOCUMENTO RESTRITO</span><span>'+inv.fid+'</span></div>'
+    +'</body></html>';
+  // Usar Blob URL — funciona sem popup blocker
+  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.target='_blank'; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),5000);
+}
+
+
+function gerarRI(){
+  const id=$('ri-sel').value, inv=DB.invs.find(i=>i.id===id), res=$('rires');
+  if(!inv||!res){if(res)res.innerHTML='';return;}
+  addLog('VIEW','Investigado',id);
+  const stB={'EM INVESTIGACAO':'#d97706','ENCERRADA':'#10b981','ARQUIVADA':'#64748b'};
+  res.innerHTML='<div class="fade" style="background:var(--panel);border:1px solid var(--bd);border-radius:10px;padding:20px">'
+    +'<div style="display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--bd);padding-bottom:14px;margin-bottom:16px">'
+    +(inv.fotoGaleria&&inv.fotoGaleria.length?'<img src="'+inv.fotoGaleria[0]+'" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid var(--bd2)">':'<div style="width:60px;height:60px;border-radius:50%;background:var(--inp);border:2px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:26px">&#x1F464;</div>')
+    +'<div><h2 style="font-size:16px;font-weight:700;color:#fff">'+esc(inv.nome)+'</h2><div style="display:flex;gap:8px;margin-top:4px"><span style="font-size:11px;font-family:monospace;color:var(--skyh)">'+inv.fid+'</span>'+(inv.obito?'<span class="bdg bred">OBITO</span>':'<span class="bdg bgrn">ATIVO</span>')+'</div></div></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px 16px;margin-bottom:16px;font-size:12px">'+[['CPF',maskCPF(inv.cpf)],['RG',inv.rg||'--'],['Nascimento',inv.nasc||'--'],['Naturalidade',inv.nat||'--'],['Estado Civil',inv.ec||'--'],['Profissao',inv.prof||'--'],['Mae',inv.mae||'--'],['Pai',inv.pai||'--'],['E-mail',inv.email||'--']].map(([l,v])=>'<div><div style="font-size:9px;color:var(--dim);text-transform:uppercase;margin-bottom:2px">'+l+'</div><div>'+esc(v)+'</div></div>').join('')+'</div>'
+    +'<div style="border-top:1px solid var(--bd);padding-top:14px;margin-bottom:14px"><div style="font-size:10px;font-weight:800;text-transform:uppercase;color:var(--skyh);margin-bottom:8px">Procedimento</div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:12px">'+[['Tipo',inv.procTipo||'--'],['Numero',inv.ip||'--'],['VPI',inv.vpi||'--'],['Processo',inv.proc||'--'],['Delegado',inv.del||'--'],['Agente',inv.agt||'--']].map(([l,v])=>'<div><div style="font-size:9px;color:var(--dim);text-transform:uppercase;margin-bottom:2px">'+l+'</div><div>'+esc(v)+'</div></div>').join('')+'</div></div>'
+    +(inv.oc&&inv.oc.length?'<div style="border-top:1px solid var(--bd);padding-top:14px;margin-bottom:14px"><div style="font-size:10px;font-weight:800;text-transform:uppercase;color:var(--skyh);margin-bottom:8px">Ocorrencias</div>'+inv.oc.map(o=>'<div style="background:var(--inp);border-radius:7px;padding:10px;margin-bottom:7px;border:1px solid var(--bd);font-size:12px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><strong>'+esc(o.tip)+'</strong><span style="font-size:10px;font-weight:700;color:'+(stB[o.st]||'#64748b')+'">'+esc(o.st)+'</span></div>'+(o.dt||o.num?'<div style="font-size:10px;color:var(--dim)">'+(o.dt?o.dt+' ':'')+esc(o.num)+'</div>':'')+(o.desc?'<div style="color:var(--mut);margin-top:4px">'+esc(o.desc)+'</div>':'')+'</div>').join('')+'</div>':'')
+    +(inv.fotoGaleria&&inv.fotoGaleria.length?'<div style="border-top:1px solid var(--bd);padding-top:14px"><div style="font-size:10px;font-weight:800;text-transform:uppercase;color:var(--skyh);margin-bottom:8px">Arquivo Fotografico</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px">'+inv.fotoGaleria.map(f=>'<div style="border-radius:6px;overflow:hidden;aspect-ratio:1"><img src="'+f+'" style="width:100%;height:100%;object-fit:cover"></div>').join('')+'</div></div>':'')
+    +'</div>';
+}
+
+function populaLogOps(selId){
+  const sel=$(selId||'rl-op');if(!sel)return;const cur=sel.value;
+  sel.innerHTML='<option value="">Todos</option>'+DB.ops.map(o=>'<option value="'+o.id+'">'+esc(o.nome)+'</option>').join('');
+  sel.value=cur;
+}
+
+function renderLogs(){
+  const op=($('rl-op').value||''),ac=($('rl-ac').value||'').toUpperCase(),tp=($('rl-tp').value||'');
+  let lista=DB.logs.filter(l=>{if(op&&l.oid!==op)return false;if(ac&&l.ac!==ac)return false;if(tp==='i'&&l.re!=='Investigado')return false;if(tp==='o'&&l.re!=='Operador')return false;if(tp==='s'&&l.re!=='Session')return false;return true;});
+  const total=lista.length, paged=lista.slice(rlPg*LOG_LIM,(rlPg+1)*LOG_LIM);
+  const tb=$('rl-body');if(!tb)return;
+  tb.innerHTML=paged.map(l=>'<tr><td style="font-size:10px;color:var(--dim)">'+esc(fmtDT(l.ts2))+'</td><td><strong>'+esc(l.on)+'</strong><br><span style="font-size:10px;font-family:monospace;color:var(--dim)">'+esc(l.ol)+'</span></td><td><span class="bdg bgry">'+esc(l.ac)+'</span></td><td style="font-size:11px">'+esc(l.re||'--')+'</td></tr>').join('')||'<tr><td colspan="4" style="text-align:center;color:var(--dim);padding:16px">Nenhum log encontrado.</td></tr>';
+  const prev=$('rl-prev'),next=$('rl-next'),meta=$('rl-meta');
+  if(prev)prev.disabled=rlPg===0;if(next)next.disabled=(rlPg+1)*LOG_LIM>=total;
+  if(meta)meta.textContent=total+' registros | Pag. '+(rlPg+1);
+}
+
+function renderRelOps(){
+  const tb=$('ro-body');if(!tb)return;
+  tb.innerHTML=DB.ops.map(o=>'<tr><td><div style="font-weight:700">'+esc(o.nome)+'</div><div style="font-size:10px;color:var(--dim)">'+esc(o.email||'--')+'</div></td><td class="mono">'+esc(o.login)+'</td><td><div>'+esc(o.cargo||'--')+'</div><div style="font-size:10px;color:var(--dim)">'+esc(o.lotacao||'--')+'</div></td><td><span class="bdg '+(PERFIL_B[o.perfil]||'bgry')+'">'+PERFIL_L[o.perfil]+'</span></td><td>'+(o.ativo?'<span class="bdg bgrn">ATIVO</span>':'<span class="bdg bgry">INATIVO</span>')+'</td><td style="font-size:10px;color:var(--dim)">'+fmtDT(o.criadoEm)+'</td></tr>').join('');
+}
+
+function admTab(t){
+  ['op','sl','lg','iv','cf'].forEach(id=>{const el=$('adm-'+id);if(el)el.style.display=id===t?'':'none';});
+  document.querySelectorAll('#adm-tabs .tab').forEach((b,i)=>b.classList.toggle('on',['op','sl','lg','iv','cf'][i]===t));
+  if(t==='op')renderOps();if(t==='sl')renderSolics();if(t==='lg'){algPg=0;populaLogOps('alg-op');renderAdmLogs();}if(t==='iv')renderAdmInv();if(t==='cf')renderCfgSessao();
+}
+
+function renderAdmDash(){
+  const el=$('adm-dash');if(!el)return;
+  const cards=[{l:'Total Investigados',v:DB.invs.length,c:'#38bdf8',i:'&#x1F9D1;'},{l:'Obitos',v:DB.invs.filter(i=>i.obito).length,c:'#f87171',i:'&#x1F480;'},{l:'Operadores Ativos',v:DB.ops.filter(o=>o.ativo).length,c:'#4ade80',i:'&#x1F46E;'},{l:'Solicitacoes Pend.',v:DB.solic.filter(s=>s.status==='PENDENTE').length,c:'#fbbf24',i:'&#x1F4DD;'},{l:'Logs Registrados',v:DB.logs.length,c:'#a78bfa',i:'&#x1F4CB;'}];
+  el.innerHTML=cards.map(c=>'<div class="st"><div class="sl">'+c.i+' '+c.l+'</div><div class="sv" style="color:'+c.c+'">'+c.v+'</div></div>').join('');
+}
+
+function salvarOp(){
+  const id=($('op-id').value||'').trim(),nome=($('op-nome').value||'').trim(),login=($('op-login').value||'').trim(),senha=($('op-senha').value||'').trim(),cargo=($('op-cargo').value||'').trim(),lot=($('op-lot').value||'').trim();
+  if(!nome||!login||!cargo||!lot){toast('Preencha Nome, Login, Cargo e Lotacao.','error');return;}
+  if(DB.ops.find(o=>o.login===login&&o.id!==id)){toast('Login ja existe no sistema.','error');return;}
+  if(id){
+    const idx=DB.ops.findIndex(o=>o.id===id);if(idx<0)return;
+    const upd={...DB.ops[idx],nome,login,cargo,lotacao:lot,email:($('op-email').value||'').trim(),tel:($('op-tel').value||'').trim(),perfil:$('op-perfil').value,atualizadoEm:ts()};
+    if(senha)upd.senha=senha;
+    if(DB.ops[idx].id===S.id&&upd.perfil!=='ADMIN'){toast('Voce nao pode remover seu proprio perfil de Admin.','error');return;}
+    DB.ops[idx]=upd;addLog('UPDATE','Operador',id);toast('Operador atualizado!','success');
+  }else{
+    if(!senha){toast('Senha e obrigatoria para novo operador.','error');return;}
+    const novoOp={id:gid(),nome,cpf:($('op-cpf').value||'').trim(),login,senha,cargo,lotacao:lot,email:($('op-email').value||'').trim(),tel:($('op-tel').value||'').trim(),perfil:$('op-perfil').value,ativo:true,criadoEm:ts()};
+    DB.ops.push(novoOp);addLog('CREATE','Operador',novoOp.id);toast('Operador cadastrado!','success');
   }
+  limOp();renderOps();
+}
+function limOp(){ $('op-id').value='';$('op-tit').textContent='Cadastrar Operador';['op-nome','op-cpf','op-login','op-senha','op-cargo','op-lot','op-email','op-tel'].forEach(id=>{if($(id))$(id).value='';});if($('op-perfil'))$('op-perfil').value='VISUALIZADOR'; }
+function editarOp(id){const op=DB.ops.find(x=>x.id===id);if(!op)return;$('op-id').value=op.id;$('op-tit').textContent='Editar: '+op.nome;$('op-nome').value=op.nome;$('op-cpf').value=op.cpf||'';$('op-login').value=op.login;$('op-senha').value='';$('op-cargo').value=op.cargo||'';$('op-lot').value=op.lotacao||'';$('op-email').value=op.email||'';$('op-tel').value=op.tel||'';$('op-perfil').value=op.perfil;window.scrollTo({top:0,behavior:'smooth'});}
+function desativarOp(id){const op=DB.ops.find(x=>x.id===id);if(!op)return;if(op.id===S.id){toast('Voce nao pode se desativar.','error');return;}confirmar('Desativar Operador','Desativar "'+op.nome+'"?',()=>{op.ativo=!op.ativo;addLog(op.ativo?'UPDATE':'DELETE','Operador',id);toast(op.ativo?'Operador reativado.':'Operador desativado.','success');renderOps();});}
+function renderOps(){
+  const q=($('op-filt').value||'').toUpperCase(),st=($('op-filt-st').value||'');
+  const lista=DB.ops.filter(o=>{const m=!q||o.nome.toUpperCase().includes(q)||o.login.includes(q);if(!m)return false;if(st==='1')return o.ativo;if(st==='0')return !o.ativo;return true;});
+  const tb=$('op-body');if(!tb)return;
+  tb.innerHTML=lista.map(o=>'<tr><td><div style="font-weight:700">'+esc(o.nome)+'</div><div style="font-size:10px;color:var(--dim)">'+esc(o.cargo||'--')+'</div></td><td class="mono">'+esc(o.login)+'</td><td>'+esc(o.lotacao||'--')+'</td><td><span class="bdg '+(PERFIL_B[o.perfil]||'bgry')+'">'+PERFIL_L[o.perfil]+'</span></td><td>'+(o.ativo?'<span class="bdg bgrn">ATIVO</span>':'<span class="bdg bgry">INATIVO</span>')+'</td><td class="tr"><button class="btn bs sm" onclick="editarOp(\''+o.id+'\')">Editar</button> <button class="btn bd sm" onclick="desativarOp(\''+o.id+'\')">'+(o.ativo?'Desativar':'Reativar')+'</button></td></tr>').join('')||'<tr><td colspan="6" style="text-align:center;color:var(--dim);padding:16px">Nenhum operador encontrado.</td></tr>';
+}
 
-  function showToast(m, t='tinf') {
-    const box = document.getElementById('ts');
-    const el = document.createElement('div');
-    el.className = `t ${t === 'tok' ? 'tok' : t === 'terr' ? 'terr' : 'tinf'}`;
-    el.textContent = m;
-    box.appendChild(el);
-    setTimeout(() => el.remove(), 3000);
+function enviarSolic(){
+  const nome=($('sc-nome').value||'').trim();
+  const cpf=($('sc-cpf').value||'').trim();
+  const login=($('sc-login').value||'').trim().toLowerCase().replace(/\s+/g,'');
+  const s1=$('sc-s1').value;
+  const s2=$('sc-s2').value;
+  const cargo=($('sc-cargo').value||'').trim();
+  const lot=($('sc-lot').value||'').trim();
+  const email=($('sc-email').value||'').trim();
+  const motivo=($('sc-motivo')?$('sc-motivo').value||'':'').trim();
+  if(!nome){toast('Nome completo e obrigatorio.','error');return;}
+  if(!login){toast('Login desejado e obrigatorio.','error');return;}
+  if(!s1){toast('Senha e obrigatoria.','error');return;}
+  if(s1.length<6){toast('Senha deve ter ao menos 6 caracteres.','error');return;}
+  if(s1!==s2){toast('Senhas nao conferem. Digite novamente.','error');return;}
+  if(!cargo){toast('Cargo/Funcao e obrigatorio.','error');return;}
+  if(!lot){toast('Lotacao/Unidade e obrigatoria.','error');return;}
+  if(DB.ops.find(o=>o.login===login)){toast('Este login ja existe no sistema. Escolha outro.','error');return;}
+  if(DB.solic.find(x=>x.login===login&&x.status==='PENDENTE')){toast('Ja existe uma solicitacao pendente com este login.','error');return;}
+  DB.solic.push({id:gid(),nome,cpf,login,senha:s1,cargo,lotacao:lot,email,motivo,status:'PENDENTE',criadoEm:ts()});
+  atualizarSolics();
+  toast('Solicitacao enviada! Aguarde o Administrador validar.','success');
+  fecharM('mod-solic');
+  ['sc-nome','sc-cpf','sc-login','sc-s1','sc-s2','sc-cargo','sc-lot','sc-email'].forEach(id=>{if($(id))$(id).value='';});
+}
+
+function aprSolic(id){
+  const s=DB.solic.find(x=>x.id===id);if(!s)return;
+  const novoOp={id:gid(),nome:s.nome,cpf:s.cpf,login:s.login,senha:s.senha,cargo:s.cargo,lotacao:s.lotacao,email:s.email,tel:'',perfil:'VISUALIZADOR',ativo:true,criadoEm:ts()};
+  DB.ops.push(novoOp);s.status='APROVADO';addLog('APPROVE','Operador',novoOp.id);
+  toast('Solicitacao aprovada! Operador criado como Visualizador.','success');
+  renderSolics();renderOps();renderAdmDash();
+}
+function rejSolic(id){const s=DB.solic.find(x=>x.id===id);if(!s)return;confirmar('Rejeitar Solicitacao','Rejeitar a solicitacao de "'+s.nome+'"?',()=>{s.status='REJEITADO';addLog('DELETE','Operador',null);toast('Solicitacao rejeitada.','warn');renderSolics();renderAdmDash();});}
+function atualizarSolics(){
+  var pend=DB.solic.filter(function(s){return s.status==='PENDENTE';}).length;
+  var sb=$('solic-badge');
+  if(sb){sb.textContent=pend;sb.style.display=pend?'':'none';}
+  var sa=$('solic-alerts');
+  if(!sa)return;
+  sa.innerHTML='';
+  if(pend>0){
+    var div=document.createElement('div');
+    div.style.cssText='background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:10px 13px;display:flex;align-items:center;gap:10px;color:#fbbf24;font-size:12px;cursor:pointer;margin-bottom:8px';
+    div.onclick=function(){admTab('sl');};
+    var span=document.createElement('span');
+    span.innerHTML='&#x1F4DD; <strong>'+pend+'</strong> solicitacao(oes) aguardando aprovacao &mdash; clique para ver';
+    div.appendChild(span);
+    sa.appendChild(div);
   }
+}
 
-  function doLogin() {
-    const l = document.getElementById('gl').value.trim();
-    const s = document.getElementById('gs').value;
-    
-    const u = dbUsuarios.find(x => x.login === l && x.pass === s);
-    if(!u) {
-      currentUser = {login: l};
-      pushLog(`Falha de autenticação para o usuário: [${l}]`);
-      currentUser = null;
-      showToast('Credenciais Inválidas ou Sem Permissão.', 'terr');
-      return;
-    }
+function renderSolics(){
+  atualizarSolics();
+  const pend=DB.solic.filter(s=>s.status==='PENDENTE');
+  const cnt=$('sl-cnt');if(cnt){cnt.textContent=pend.length;cnt.style.display=pend.length?'':'none';}
+  const tb=$('sl-body');if(!tb)return;
+  tb.innerHTML=pend.map(s=>'<tr><td><strong>'+esc(s.nome)+'</strong></td><td><div>'+esc(s.cpf||'--')+'</div><div class="mono" style="font-size:10px">'+esc(s.login)+'</div></td><td><div>'+esc(s.cargo||'--')+'</div><div style="font-size:10px;color:var(--dim)">'+esc(s.lotacao||'--')+'</div></td><td>'+esc(s.email||'--')+'</td><td style="font-size:10px;color:var(--dim)">'+fmtDT(s.criadoEm)+'</td><td class="tr"><button class="btn bg_ sm" onclick="aprSolic(\''+s.id+'\')">Aprovar</button> <button class="btn bd sm" onclick="rejSolic(\''+s.id+'\')">Rejeitar</button></td></tr>').join('')||'<tr><td colspan="6" style="text-align:center;color:var(--dim);padding:16px">Nenhuma solicitacao pendente.</td></tr>';
+}
 
-    currentUser = u;
-    document.getElementById('gw').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    
-    // Customizar barra lateral do usuário logado
-    document.getElementById('u-avatar').textContent = u.nome.substring(0,2).toUpperCase();
-    document.getElementById('u-nome font').textContent = u.nome;
-    document.getElementById('u-cargo').textContent = u.cargo;
-    document.getElementById('fagt').value = u.nome;
+function renderAdmLogs(){
+  const op=($('alg-op').value||''),ac=($('alg-ac').value||'').toUpperCase(),tp=($('alg-tp').value||'');
+  let lista=DB.logs.filter(l=>{if(op&&l.oid!==op)return false;if(ac&&l.ac!==ac)return false;if(tp==='i'&&l.re!=='Investigado')return false;if(tp==='o'&&l.re!=='Operador')return false;if(tp==='s'&&l.re!=='Session')return false;return true;});
+  const total=lista.length,paged=lista.slice(algPg*LOG_LIM,(algPg+1)*LOG_LIM);
+  const tb=$('alg-body');if(!tb)return;
+  tb.innerHTML=paged.map(l=>'<tr><td style="font-size:10px;color:var(--dim)">'+esc(fmtDT(l.ts2))+'</td><td><strong>'+esc(l.on)+'</strong></td><td><span class="bdg bgry">'+esc(l.ac)+'</span></td><td style="font-size:11px">'+esc(l.re||'--')+'</td></tr>').join('')||'<tr><td colspan="4" style="text-align:center;color:var(--dim);padding:16px">Nenhum log.</td></tr>';
+  const meta=$('alg-meta');if(meta)meta.textContent=total+' registros | Pag. '+(algPg+1);
+}
 
-    // Regra Crítica de Visibilidade do menu ADMIN
-    if(u.role === 'admin') {
-      document.getElementById('nav-seguranca').style.display = 'block';
-      document.getElementById('btn-excluir-alvo').style.display = 'inline-flex';
-      document.getElementById('adm-new-login').value = u.login;
+function renderAdmInv(){
+  const q=($('aiv-q').value||'').toUpperCase(),st=($('aiv-st').value||'');
+  const lista=DB.invs.filter(i=>{const m=!q||i.nome.includes(q)||i.fid.includes(q);if(!m)return false;if(st==='a')return i.ativo&&!i.obito;if(st==='o')return i.obito;return true;});
+  const tb=$('aiv-body'),total=$('aiv-total');if(total)total.textContent=lista.length+' registro(s)';if(!tb)return;
+  tb.innerHTML=lista.map(i=>'<tr class="'+(i.obito?'row-obt':'')+'"><td><div style="font-weight:700">'+esc(i.nome)+'</div><div style="font-size:10px;font-family:monospace;color:var(--dim)">'+i.fid+'</div></td><td class="mono" style="font-size:11px">'+maskCPF(i.cpf)+'</td><td style="font-size:11px">'+esc((i.procTipo||'')+(i.ip?' '+i.ip:''))+'</td><td>'+(i.obito?'<span class="bdg bred">OBITO</span>':'<span class="bdg bgrn">ATIVO</span>')+'</td><td class="tr"><button class="btn bs sm" onclick="ir(\'pesq\');setTimeout(()=>abrirFicha(\''+i.id+'\'),80)">Ver</button> '+(isAdmin()?'<button class="btn bd sm" onclick="excluirInvAdmin(\''+i.id+'\')">Excluir</button>':'')+'</td></tr>').join('')||'<tr><td colspan="5" style="text-align:center;color:var(--dim);padding:16px">Nenhum investigado.</td></tr>';
+}
+
+function excluirInvAdmin(id){if(!isAdmin()){toast('Sem permissao.','error');return;}const inv=DB.invs.find(x=>x.id===id);confirmar('Excluir Investigado','Excluir definitivamente "'+(inv?inv.nome:id)+'"?',()=>{DB.invs=DB.invs.filter(x=>x.id!==id);addLog('DELETE','Investigado',id);toast('Investigado excluido.','success');renderAdmInv();atualizarObit();populaSels();renderDash();});}
+
+function salvarCfg(){ toast('Configuracoes salvas!','success'); }
+function renderCfgSessao(){const el=$('cfg-sessao');if(!el||!S)return;el.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">'+[['Operador',S.nome],['Login',S.login],['Perfil',PERFIL_L[S.perfil]||S.perfil],['Lotacao',S.lotacao]].map(([l,v])=>'<div><span style="font-size:9px;color:var(--dim);display:block;text-transform:uppercase">'+l+'</span><span>'+esc(v)+'</span></div>').join('')+'</div>';}
+function limparBanco(){if(!isAdmin()){toast('Sem permissao.','error');return;}confirmar('Zerar Banco de Dados','Apagar TODOS os investigados? IRREVERSIVEL.',()=>{DB.invs=[];addLog('DELETE','Sistema',null);toast('Banco de dados zerado.','success');limForm();renderRepo();renderDash();atualizarObit();populaSels();ir('pesq');});}
+
+function atualizarLogoPrev(){const el=$('logo-prev');if(el)el.innerHTML=LOGO_TMP||'&#x1F6E1;';}
+function aplicarLogo(){const logo=LOGO_TMP||'&#x1F6E1;';[$('gw-ic'),$('sb-ic'),$('mob-ic')].forEach(el=>{if(el)el.innerHTML=logo;});toast('Logo atualizado!','success');fecharM('mod-logo');}
+
+function preenchMP(){
+  if(!S)return;
+  const ic=$('mp-inst-card'); if(ic) ic.style.display=isAdmin()?'':'none';
+  if(isAdmin()) preencherInstituicao();
+  $('mp-nome').value=S.nome;
+  $('mp-login').value=S.login;
+  $('mp-email').value=S.email||'';
+  $('mp-tel').value=S.tel||'';
+  $('mp-lot').value=S.lotacao;
+  $('mp-cargo').value=S.cargo;
+  // Campos extras só editaveis para admin
+  const soAdmin=['mp-nome','mp-login','mp-lot','mp-cargo'];
+  soAdmin.forEach(id=>{
+    const el=$(id); if(!el)return;
+    if(isAdmin()){
+      el.removeAttribute('disabled');
+      el.style.opacity='';
+      el.style.cursor='';
     } else {
-      document.getElementById('nav-seguranca').style.display = 'none';
-      document.getElementById('btn-excluir-alvo').style.display = 'none';
+      el.setAttribute('disabled','');
+      el.style.opacity='.5';
+      el.style.cursor='not-allowed';
     }
-
-    pushLog(`Usuário realizou login com sucesso [Nível: ${u.role}]`);
-    renderRepo();
-    renderUsuarios();
-    renderLogs();
-    atualizarStats();
-    ir('pesq');
-  }
-
-  function doLogout() {
-    pushLog("Usuário encerrou a sessão ativa");
-    currentUser = null;
-    document.getElementById('app').style.display = 'none';
-    document.getElementById('gw').style.display = 'flex';
-  }
-
-  function ir(tela) {
-    if(tela === 'adm' && currentUser.role !== 'admin') {
-      showToast('Acesso negado. Requer privilégios de Administrador.', 'terr');
-      pushLog('Tentativa violenta de quebra de escopo para a tela ADM');
-      return;
-    }
-    ['pesq', 'cad', 'ri', 'adm'].forEach(s => {
-      document.getElementById(`pg-${s}`).style.display = 'none';
-      if(document.getElementById(`nb-${s}`)) document.getElementById(`nb-${s}`).classList.remove('on');
-    });
-    document.getElementById(`pg-${tela}`).style.display = 'block';
-    if(document.getElementById(`nb-${tela}`)) document.getElementById(`nb-${tela}`).classList.add('on');
-  }
-
-  function ftab(tab) {
-    ['q', 'v', 'k', 'e', 'd', 'p'].forEach(t => document.getElementById(`ft-${t}`).style.display = 'none');
-    document.getElementById(`ft-${tab}`).style.display = 'block';
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
-    document.getElementById(`t-${tab}`).classList.add('on');
-  }
-
-  // OPERAÇÕES DO ADMIN GERAL
-  function alterarCredenciaisAdmin() {
-    if(currentUser.role !== 'admin') return;
-    const nLogin = document.getElementById('adm-new-login').value.trim();
-    const nPass = document.getElementById('adm-new-pass').value;
-
-    if(!nLogin || !nPass) { showToast('Preencha os campos de login/senha', 'terr'); return; }
-    
-    const antigoLogin = currentUser.login;
-    currentUser.login = nLogin;
-    currentUser.pass = nPass;
-    
-    pushLog(`Alterou suas credenciais de admin de [${antigoLogin}] para [${nLogin}]`);
-    showToast('Credenciais administrativas salvas!', 'tok');
-    document.getElementById('adm-new-pass').value = '';
-    renderUsuarios();
-  }
-
-  function cadastrarUsuario() {
-    if(currentUser.role !== 'admin') return;
-    const nome = document.getElementById('usr-nome').value.trim();
-    const cargo = document.getElementById('usr-cargo').value.trim();
-    const login = document.getElementById('usr-login').value.trim();
-    const pass = document.getElementById('usr-pass').value;
-    const role = document.getElementById('usr-role').value;
-
-    if(!nome || !login || !pass) { showToast('Nome, Username e Senha são cruciais', 'terr'); return; }
-    if(dbUsuarios.some(x => x.login === login)) { showToast('Este Username já existe no sistema', 'terr'); return; }
-
-    dbUsuarios.push({login, pass, nome, cargo, role});
-    pushLog(`Cadastrou o usuário operador: ${login} (${nome}) como [${role}]`);
-    showToast('Usuário registrado com sucesso!', 'tok');
-
-    document.getElementById('usr-nome').value = ''; document.getElementById('usr-cargo').value = '';
-    document.getElementById('usr-login').value = ''; document.getElementById('usr-pass').value = '';
-    renderUsuarios();
-  }
-
-  function excluirUsuario(login) {
-    if(currentUser.role !== 'admin') return;
-    if(login === currentUser.login) { showToast('Você não pode se auto-excluir', 'terr'); return; }
-    
-    dbUsuarios = dbUsuarios.filter(x => x.login !== login);
-    pushLog(`Excluiu permanentemente o usuário: [${login}]`);
-    showToast('Usuário revogado do banco.', 'tok');
-    renderUsuarios();
-  }
-
-  function excluirAlvoAtual() {
-    if(currentUser.role !== 'admin') { showToast('Permissão Negada.', 'terr'); return; }
-    const id = document.getElementById('fid2').value;
-    if(!id) return;
-
-    if(confirm("Confirma a exclusão definitiva deste investigado da base de dados?")) {
-      const inv = dbInvestigados.find(x => x.id === id);
-      dbInvestigados = dbInvestigados.filter(x => x.id !== id);
-      pushLog(`Excluiu o prontuário do alvo: ${inv.nome} (CPF: ${inv.cpf})`);
-      showToast('Registro eliminado.', 'terr');
-      limForm(); renderRepo(); atualizarStats();
-      ir('pesq');
+  });
+  // Aviso dinâmico
+  const av=$('mp-aviso');
+  if(av){
+    if(isAdmin()){
+      av.innerHTML='&#x2139;&#xFE0F; Como <strong style="color:var(--skyh)">Administrador Geral</strong>, voce pode editar todos os campos.';
+      av.style.borderColor='rgba(2,132,199,.18)';
+    } else {
+      av.innerHTML='&#x2139;&#xFE0F; <strong style="color:var(--skyh)">Campos editaveis:</strong> E-mail e Telefone.<br>Nome, Login, Lotacao e Cargo so podem ser alterados pelo Administrador.';
+      av.style.borderColor='rgba(2,132,199,.18)';
     }
   }
+}
+function salvarMP(){
+  if(!S)return;
+  const idx=DB.ops.findIndex(o=>o.id===S.id);
+  if(idx<0)return;
+  // Email e telefone: todos podem editar
+  DB.ops[idx].email=($('mp-email').value||'').trim();
+  DB.ops[idx].tel=($('mp-tel').value||'').trim();
+  // Nome, login, lotacao, cargo: somente o próprio admin
+  if(isAdmin()){
+    const novoLogin=($('mp-login').value||'').trim();
+    if(novoLogin && novoLogin!==DB.ops[idx].login){
+      // Verificar login duplicado
+      if(DB.ops.find(o=>o.login===novoLogin&&o.id!==S.id)){
+        toast('Este login ja esta em uso por outro operador.','error');return;
+      }
+      DB.ops[idx].login=novoLogin;
+    }
+    DB.ops[idx].nome=($('mp-nome').value||'').trim()||DB.ops[idx].nome;
+    DB.ops[idx].lotacao=($('mp-lot').value||'').trim()||DB.ops[idx].lotacao;
+    DB.ops[idx].cargo=($('mp-cargo').value||'').trim()||DB.ops[idx].cargo;
+  }
+  S={...DB.ops[idx]};
+  // Atualizar sidebar
+  $('sb-nome').textContent=S.nome;
+  $('sb-lot').textContent=S.lotacao;
+  $('sb-av').textContent=S.nome.split(' ').slice(0,2).map(w=>w[0]).join('');
+  addLog('UPDATE','Operador',S.id);
+  toast('Informacoes salvas com sucesso!','success');
+  preenchMP();
+}
+function mudarSenha(){if(!S)return;const s1=$('mp-s1').value,s2=$('mp-s2').value,s3=$('mp-s3').value,op=DB.ops.find(o=>o.id===S.id);if(!op){toast('Operador nao encontrado.','error');return;}if(op.senha!==s1){toast('Senha atual incorreta.','error');return;}if(!s2){toast('Digite a nova senha.','error');return;}if(s2!==s3){toast('Nova senha e confirmacao nao conferem.','error');return;}if(s2.length<6){toast('Nova senha deve ter ao menos 6 caracteres.','error');return;}op.senha=s2;S.senha=s2;addLog('UPDATE','Operador',S.id);toast('Senha alterada com sucesso!','success');['mp-s1','mp-s2','mp-s3'].forEach(id=>{if($(id))$(id).value='';});}
 
-  function renderUsuarios() {
-    const tbody = document.getElementById('tbl-usuarios'); tbody.innerHTML = '';
-    dbUsuarios.forEach(u => {
-      tbody.innerHTML += `
-        <tr>
-          <td><strong>${u.nome}</strong></td><td>${u.cargo || 'N/I'}</td><td><code>${u.login}</code></td>
-          <td><span class="bdg ${u.role === 'admin' ? 'pur' : 'grn'}">${u.role}</span></td>
-          <td class="tr">
-            <button class="btn bd sm" ${u.login === currentUser.login ? 'disabled' : ''} onclick="excluirUsuario('${u.login}')">Revogar</button>
-          </td>
-        </tr>`;
-    });
-  }
+function impTab(t){['csv','json','manual','modelo'].forEach(id=>{const el=$('imp-'+id);if(el)el.style.display=id===t?'':'none';});document.querySelectorAll('#mod-imp .tabs .tab').forEach((b,i)=>b.classList.toggle('on',['csv','json','manual','modelo'][i]===t));}
+function resultImp(imp,ign){const el=$('imp-res');if(!el)return;el.innerHTML='<div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:7px;padding:10px;font-size:12px;color:#34d399">Importados: <strong>'+imp+'</strong> | Ignorados: <strong>'+ign+'</strong></div>';toast('Importacao concluida: '+imp+' registro(s).','success');renderRepo();populaSels();atualizarObit();renderDash();}
+function novoInvImport(obj){const nome=(obj.nome||obj.name||'').toUpperCase().trim();if(!nome)return false;const cpf=obj.cpf||'';if(cpf&&DB.invs.find(x=>x.cpf===cpf))return false;const apelidos=(obj.apelidos||obj.apelido||'').split('|').map(a=>a.trim()).filter(Boolean);DB.invs.push({id:gid(),fid:fid(),ativo:true,obito:false,obitoData:'',fotoGaleria:[],docs:[],fotoUrl:null,nome,cpf,rg:obj.rg||'',nat:obj.naturalidade||obj.nat||'',nasc:obj.nascimento||obj.nasc||'',nac:obj.nacionalidade||'Brasileira',mae:obj.mae||'',pai:obj.pai||'',ec:obj.estadocivil||obj.ec||'',prof:obj.profissao||obj.prof||'',trb:obj.trabalho||obj.trb||'',pele:obj.pele||'',alt:obj.altura||obj.alt||'',pes:obj.peso||obj.pes||'',tat:obj.tatuagens||obj.tat||'',email:obj.email||'',obs:obj.obs||'',telp:[],telu:[],apel:apelidos,vei:[],vinc:[],ender:[],oc:[],procTipo:obj.tipo||'IP',ip:obj.ip||obj.inquerito||'',vpi:obj.vpi||'',proc:obj.processo||obj.proc||'',del:obj.delegado||obj.del||'',esc:obj.escrivao||obj.esc||'',agt:obj.agente||obj.agt||'',criadoEm:ts(),atualizadoEm:ts()});addLog('CREATE','Investigado',null);return true;}
+function importCSV(){const f=$('imp-csv-f').files[0];if(!f){toast('Selecione um arquivo CSV.','error');return;}const r=new FileReader();r.onload=e=>{try{const linhas=e.target.result.split('\n').map(l=>l.trim()).filter(Boolean);if(linhas.length<2){toast('Arquivo sem dados.','error');return;}const sep=linhas[0].includes(';')?';':',';const header=linhas[0].split(sep).map(c=>c.trim().toLowerCase().replace(/['"]/g,''));let imp=0,ign=0;for(let i=1;i<linhas.length;i++){const vals=linhas[i].split(sep).map(v=>v.trim().replace(/^['"]|['"]$/g,''));const obj={};header.forEach((col,j)=>obj[col]=vals[j]||'');if(novoInvImport(obj))imp++;else ign++;}resultImp(imp,ign);}catch(err){toast('Erro ao processar CSV: '+err.message,'error');}};r.readAsText(f,'UTF-8');}
+function importJSON(){const f=$('imp-json-f').files[0];if(!f){toast('Selecione um arquivo JSON.','error');return;}const r=new FileReader();r.onload=e=>{try{const dados=JSON.parse(e.target.result);if(!Array.isArray(dados)){toast('JSON deve ser um array.','error');return;}let imp=0,ign=0;dados.forEach(obj=>{if(novoInvImport(obj))imp++;else ign++;});resultImp(imp,ign);}catch(err){toast('Erro ao ler JSON: '+err.message,'error');}};r.readAsText(f,'UTF-8');}
+function importManual(){const txt=$('imp-txt').value.trim();if(!txt){toast('Cole os dados no campo.','error');return;}let imp=0,ign=0;txt.split('\n').map(l=>l.trim()).filter(Boolean).forEach(linha=>{const p=linha.split(';').map(v=>v.trim());const obj={nome:p[0]||'',cpf:p[1]||'',nat:p[2]||'',nasc:p[3]||'',ip:p[4]||''};if(novoInvImport(obj))imp++;else ign++;});resultImp(imp,ign);}
 
-  function renderLogs() {
-    const tbody = document.getElementById('tbl-logs'); tbody.innerHTML = '';
-    dbLogs.forEach(l => {
-      tbody.innerHTML += `<tr><td><small style="color:var(--dim)">${l.data}</small></td><td><strong>${l.usuario}</strong></td><td><span style="color:var(--mut)">${l.acao}</span></td></tr>`;
-    });
-  }
+function exportCSV(){const cols=['nome','cpf','rg','nat','nasc','nac','mae','pai','ec','prof','trb','pele','alt','pes','tat','email','obs','apelidos','ip','vpi','proc','del','esc','agt','fid'];const rows=[cols.join(';')];DB.invs.forEach(i=>{rows.push([i.nome,i.cpf,i.rg,i.nat,i.nasc,i.nac,i.mae,i.pai,i.ec,i.prof,i.trb,i.pele,i.alt,i.pes,i.tat,i.email,i.obs,(i.apel||[]).join('|'),i.ip,i.vpi,i.proc,i.del,i.esc,i.agt,i.fid].map(v=>'"'+(v||'').replace(/"/g,'""')+'"').join(';'));});const blob=new Blob(['\uFEFF'+rows.join('\n')],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='sipol-'+new Date().toISOString().slice(0,10)+'.csv';a.click();URL.revokeObjectURL(url);addLog('EXPORT','Investigado',null);toast('CSV exportado: '+DB.invs.length+' investigado(s).','success');}
 
-  // PROCESSOS ADICIONAIS DO FORMULÁRIO (MANTIDOS DA VERSÃO PRECEDENTE)
-  function addTelefoneLista() {
-    const num = document.getElementById('ftel-num').value; const obs = document.getElementById('ftel-obs').value;
-    if(!num) return; tempTelefones.push({numero: num, obs: obs});
-    document.getElementById('ftel-num').value = ''; document.getElementById('ftel-obs').value = ''; renderTelefones();
-  }
-  function renderTelefones() {
-    const box = document.getElementById('tel-lista'); box.innerHTML = '';
-    tempTelefones.forEach((t, idx) => { box.innerHTML += `<div class="item-dinamico"><div class="item-dinamico-info">📞 <strong>${t.numero}</strong> — <span>${t.obs}</span></div><button type="button" class="btn bd sm" onclick="tempTelefones.splice(${idx},1);renderTelefones();">Remover</button></div>`; });
-  }
-  function processaFotoVei(i) { if(i.files&&i.files[0]) { const r=new FileReader(); r.onload=e=>document.getElementById('fvei-foto-b64').value=e.target.result; r.readAsDataURL(i.files[0]); } }
-  function processaFotoFachada(i) { if(i.files&&i.files[0]) { const r=new FileReader(); r.onload=e=>document.getElementById('fend-foto-b64').value=e.target.result; r.readAsDataURL(i.files[0]); } }
-  
-  function addVeiculoLista() {
-    const mod = document.getElementById('fvei-mod').value; const pla = document.getElementById('fvei-pla').value;
-    if(!mod || !pla) return;
-    tempVeiculos.push({ modelo: mod, placa: pla, chassi: document.getElementById('fvei-cha').value, cor: document.getElementById('fvei-cor').value, prop: document.getElementById('fvei-prop').value, usua: document.getElementById('fvei-usua').value, foto: document.getElementById('fvei-foto-b64').value });
-    document.getElementById('fvei-mod').value=''; document.getElementById('fvei-pla').value=''; renderVeiculos();
-  }
-  function renderVeiculos() {
-    const box = document.getElementById('vei-lista'); box.innerHTML = '';
-    tempVeiculos.forEach((v, idx) => { box.innerHTML += `<div class="item-dinamico"><div class="item-dinamico-info">🚗 <strong>${v.modelo}</strong> [${v.placa}]</div><button type="button" class="btn bd sm" onclick="tempVeiculos.splice(${idx},1);renderVeiculos();">Remover</button></div>`; });
-  }
+function salvarInstituicao(){
+  if(!isAdmin()){toast('Sem permissao.','error');return;}
+  if($('inst-sistema'))   CFG_INST.sistema   = $('inst-sistema').value.trim()   || CFG_INST.sistema;
+  if($('inst-nome'))      CFG_INST.nome      = $('inst-nome').value.trim()      || CFG_INST.nome;
+  if($('inst-sigla'))     CFG_INST.sigla     = $('inst-sigla').value.trim()     || CFG_INST.sigla;
+  if($('inst-delegacia')) CFG_INST.delegacia = $('inst-delegacia').value.trim() || CFG_INST.delegacia;
+  if($('inst-cidade'))    CFG_INST.cidade    = $('inst-cidade').value.trim()    || CFG_INST.cidade;
+  if($('inst-cabecalho')) CFG_INST.cabecalho = $('inst-cabecalho').value.trim() || CFG_INST.cabecalho;
+  const h1=document.querySelector('.sbl h1'), p=document.querySelector('.sbl p');
+  if(h1) h1.textContent=CFG_INST.sistema;
+  if(p)  p.textContent=CFG_INST.sigla;
+  document.title=CFG_INST.sistema+' — '+CFG_INST.sigla;
+  const prev=$('inst-preview');
+  if(prev) prev.textContent=CFG_INST.sistema+' — '+CFG_INST.sigla;
+  addLog('UPDATE','Sistema',null);
+  toast('Dados da instituicao atualizados!','success');
+}
 
-  function addVinculoLista() {
-    const nome = document.getElementById('fvin-nome').value; const tipo = document.getElementById('fvin-tipo').value;
-    if(!nome) return; tempVinculos.push({ nome, tipo }); document.getElementById('fvin-nome').value = ''; renderVinculos();
-  }
-  function renderVinculos() {
-    const box = document.getElementById('vin-lista'); box.innerHTML = '';
-    tempVinculos.forEach((v, idx) => { box.innerHTML += `<div class="item-dinamico"><div class="item-dinamico-info">👤 ${v.nome} — <strong>${v.tipo}</strong></div><button type="button" class="btn bd sm" onclick="tempVinculos.splice(${idx},1);renderVinculos();">Remover</button></div>`; });
-  }
+function preencherInstituicao(){
+  if($('inst-sistema'))   $('inst-sistema').value   = CFG_INST.sistema;
+  if($('inst-nome'))      $('inst-nome').value      = CFG_INST.nome;
+  if($('inst-sigla'))     $('inst-sigla').value     = CFG_INST.sigla;
+  if($('inst-delegacia')) $('inst-delegacia').value = CFG_INST.delegacia;
+  if($('inst-cidade'))    $('inst-cidade').value    = CFG_INST.cidade;
+  if($('inst-cabecalho')) $('inst-cabecalho').value = CFG_INST.cabecalho;
+  const prev=$('inst-preview');
+  if(prev) prev.textContent=CFG_INST.sistema+' — '+CFG_INST.sigla;
+}
 
-  function addEnderecoLista() {
-    const end = document.getElementById('fend-Rua').value; if(!end) return;
-    tempEnderecos.push({ endereco: end, tipo: document.getElementById('fend-tipo').value, gps: document.getElementById('fend-gps').value, foto: document.getElementById('fend-foto-b64').value });
-    document.getElementById('fend-Rua').value = ''; renderEnderecos();
-  }
-  function renderEnderecos() {
-    const box = document.getElementById('end-lista'); box.innerHTML = '';
-    tempEnderecos.forEach((e, idx) => { box.innerHTML += `<div class="item-dinamico"><div class="item-dinamico-info">📍 [${e.tipo}] ${e.endereco}</div><button type="button" class="btn bd sm" onclick="tempEnderecos.splice(${idx},1);renderEnderecos();">Remover</button></div>`; });
-  }
+function baixarModeloCSV(){
+  var cab='nome;cpf;rg;naturalidade;nascimento;mae;pai;estadocivil;profissao;pele;altura;peso;email;apelidos;ip;vpi;delegado;agente;obs';
+  var ex=[
+    'JOAO SILVA DA COSTA;123.456.789-00;MG-12.345.678;Belo Horizonte / MG;15/04/1992;Maria Aparecida;Joao Batista;Solteiro(a);Auxiliar de Servicos;Parda;1,78m;72kg;joao@email.com;Joao|Ze;2026-0156/DECAR;VPI-0487;Dr. Jose Silva;Marcos Oliveira;Investigado principal',
+    'MARIA SOUZA LIMA;;MG-98.765.432;Contagem / MG;22/09/1988;Rosana Souza;;Casado(a);Comerciante;Branca;1,65m;60kg;;Maria|Mariazinha;2026-0022/DECAR;VPI-0112;Dr. Jose Silva;Marcos Oliveira;',
+    'PEDRO ALVES;;;Betim / MG;05/11/1995;;;;;;;;;;2025-0892/DECAR;;;Dr. Jose Silva;;Sem info adicional'
+  ];
+  var conteudo=[cab].concat(ex).join('\n');
+  var blob=new Blob([conteudo],{type:'text/csv;charset=utf-8'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url; a.download='SIPOL_modelo_importacao.csv'; a.click();
+  setTimeout(function(){URL.revokeObjectURL(url);},3000);
+  toast('Modelo CSV baixado! Abra no Excel ou Google Sheets.','success');
+}
 
-  function uploadFotoMulti(input) { if (input.files && input.files[0]) { const r = new FileReader(); r.onload = e => { tempFotosAlvo.push(e.target.result); renderGaleriaAlvo(); }; r.readAsDataURL(input.files[0]); } }
-  function renderGaleriaAlvo() { const container = document.getElementById('galeria-alvo-container'); container.innerHTML = ''; tempFotosAlvo.forEach((f, idx) => { container.innerHTML += `<div class="wrapper-foto-mini"><img src="${f}"><button type="button" class="btn-del-foto" onclick="tempFotosAlvo.splice(${idx},1);renderGaleriaAlvo();">×</button></div>`; }); }
-  function uploadDocumento(input) { if (input.files && input.files[0]) { const file = input.files[0]; const r = new FileReader(); r.onload = e => { tempDocs.push({ nome: file.name, base64: e.target.result }); renderListaDocs(); }; r.readAsDataURL(file); } }
-  function renderListaDocs() { const box = document.getElementById('doc-lista'); box.innerHTML = ''; tempDocs.forEach((doc, idx) => { box.innerHTML += `<div class="item-dinamico"><div class="item-dinamico-info">📄 ${doc.nome}</div><button type="button" class="btn bd sm" onclick="tempDocs.splice(${idx},1);renderListaDocs();">Remover</button></div>`; }); }
-
-  function salvarInv() {
-    const nome = document.getElementById('fnome').value; if(!nome) { showToast('Nome Completo é obrigatório', 'terr'); return; }
-    const id = document.getElementById('fid2').value || String(dbInvestigados.length + 1);
-    
-    const novo = {
-      id, nome, cpf: document.getElementById('fcpf').value || "Não Informado", nat: document.getElementById('fnat').value, nas: document.getElementById('fnas').value, mae: document.getElementById('fmae').value,
-      tipoProcedimento: document.getElementById('fproc-tipo').value, ip: document.getElementById('fip').value || "S/N", agente: currentUser.nome, obito: document.getElementById('fobt').checked,
-      telefones: [...tempTelefones], veiculos: [...tempVeiculos], vinculos: [...tempVinculos], enderecos: [...tempEnderecos], fotos: [...tempFotosAlvo], documentos: [...tempDocs]
-    };
-
-    const idx = dbInvestigados.findIndex(i => i.id === id);
-    if(idx > -1) { dbInvestigados[idx] = novo; pushLog(`Atualizou dados do prontuário: ${nome}`); }
-    else { dbInvestigados.push(novo); pushLog(`Criou novo prontuário tático para o alvo: ${nome}`); }
-
-    limForm(); renderRepo(); atualizarStats(); showToast('Prontuário salvo!', 'tok'); ir('pesq');
-  }
-
-  function carregarEdicao(id) {
-    const inv = dbInvestigados.find(i => i.id === id); if(!inv) return;
-    ir('cad');
-    document.getElementById('fid2').value = inv.id; document.getElementById('fnome').value = inv.nome; document.getElementById('fcpf').value = inv.cpf;
-    document.getElementById('fnat').value = inv.nat || ''; document.getElementById('fnas').value = inv.nas || ''; document.getElementById('fmae').value = inv.mae || '';
-    document.getElementById('fproc-tipo').value = inv.tipoProcedimento || 'IP'; document.getElementById('fip').value = inv.ip; document.getElementById('fobt').checked = inv.obito;
-    
-    tempTelefones = inv.telefones ? [...inv.telefones] : []; tempVeiculos = inv.veiculos ? [...inv.veiculos] : []; tempVinculos = inv.vinculos ? [...inv.vinculos] : [];
-    tempEnderecos = inv.enderecos ? [...inv.enderecos] : []; tempFotosAlvo = inv.fotos ? [...inv.fotos] : []; tempDocs = inv.documentos ? [...inv.documentos] : [];
-    
-    renderTelefones(); renderVeiculos(); renderVinculos(); renderEnderecos(); renderGaleriaAlvo(); renderListaDocs(); ftab('q');
-  }
-
-  function limForm() {
-    document.getElementById('fid2').value = ''; document.getElementById('fnome').value = ''; document.getElementById('fcpf').value = ''; document.getElementById('fip').value = '';
-    document.getElementById('fnat').value = ''; document.getElementById('fnas').value = ''; document.getElementById('fmae').value = ''; document.getElementById('fobt').checked = false;
-    tempTelefones = []; tempVeiculos = []; tempVinculos = []; tempEnderecos = []; tempFotosAlvo = []; tempDocs = [];
-    renderTelefones(); renderVeiculos(); renderVinculos(); renderEnderecos(); renderGaleriaAlvo(); renderListaDocs();
-  }
-
-  function renderRepo() {
-    const tbody = document.getElementById('rb'); tbody.innerHTML = '';
-    dbInvestigados.forEach(i => {
-      tbody.innerHTML += `<tr class="${i.obito ? 'row-obt' : ''}"><td><strong>${i.nome}</strong></td><td>${i.cpf}</td><td>${i.tipoProcedimento} ${i.ip}</td><td>${i.agente}</td><td><span class="bdg ${i.obito ? 'rdb' : 'grn'}">${i.obito ? 'Óbito' : 'Ativo'}</span></td><td class="tr"><button class="btn bs sm" onclick="carregarEdicao('${i.id}')">✏️ Analisar</button></td></tr>`;
-    });
-    const rsel = document.getElementById('rsel'); rsel.innerHTML = '<option value="">Selecione...</option>';
-    dbInvestigados.forEach(i => { rsel.innerHTML += `<option value="${i.id}">${i.nome}</option>`; });
-  }
-
-  function gerarRI() {
-    const id = document.getElementById('rsel').value; const inv = dbInvestigados.find(i => i.id === id); const res = document.getElementById('rires'); if(!inv) return;
-    res.style.display = 'block';
-    res.innerHTML = `<div class="print-header"><h2>POLÍCIA CIVIL DO ESTADO DE GOIÁS</h2><p>SIPOL — DOSSIÊ INTEGRADO</p></div><p><strong>Alvo:</strong> ${inv.nome}</p><p><strong>Procedimento:</strong> ${inv.tipoProcedimento} ${inv.ip}</p><p><strong>Encarregado:</strong> ${inv.agente}</p>`;
-  }
-
-  function limparBancoGeral() {
-    if(currentUser.role !== 'admin') return;
-    if (confirm("⚠️ Destruir TODA a base?")) { dbInvestigados = []; limForm(); renderRepo(); atualizarStats(); pushLog("PROCESSO DE DESTRUIÇÃO DE DADOS: O banco foi completamente resetado."); ir('pesq'); }
-  }
-
-  function atualizarStats() { document.getElementById('st-inv').textContent = dbInvestigados.length; document.getElementById('st-ip').textContent = dbInvestigados.filter(i => i.ip !== "").length; }
-  
-  function pesq() {
-    const q = document.getElementById('ipq').value.toLowerCase();
-    const filtered = dbInvestigados.filter(i => i.nome.toLowerCase().includes(q) || i.cpf.includes(q));
-    const res = document.getElementById('pr'); res.innerHTML = '';
-    if(!filtered.length) { res.innerHTML = '<div style="color:var(--dim); font-size:12px; padding:10px">Nenhum resultado.</div>'; return; }
-    filtered.forEach(i => { res.innerHTML += `<div class="card" style="padding:16px; display:flex; justify-content:space-between; align-items:center;"><div><strong>${i.nome}</strong></div><button class="btn bp sm" onclick="carregarEdicao('${i.id}')">Abrir</button></div>`; });
-  }
+window.addEventListener('load',()=>{document.querySelectorAll('.ov').forEach(ov=>{ov.addEventListener('click',e=>{if(e.target===ov)ov.classList.remove('open');});});});
 </script>
 </body>
 </html>
