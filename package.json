@@ -1,0 +1,54 @@
+{
+  "name": "sipol",
+  "version": "1.0.0",
+  "description": "SIPOL - Sistema Integrado de Policia - DECAR/PCGO",
+  "author": {
+    "name": "Wendel Trindade",
+    "email": "wendelemilio@gmail.com"
+  },
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win --x64"
+  },
+  "build": {
+    "appId": "br.gov.pcgo.decar.sipol",
+    "productName": "SIPOL",
+    "copyright": "Copyright © 2026 DECAR/PCGO — Wendel Trindade",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "SIPOL",
+      "installerHeaderIcon": "assets/icon.ico",
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "language": "1046",
+      "artifactName": "SIPOL-Instalador-v${version}.exe"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "src/**/*",
+      "assets/**/*"
+    ],
+    "publish": null
+  },
+  "devDependencies": {
+    "electron": "^31.7.7",
+    "electron-builder": "^24.13.3"
+  }
+}
